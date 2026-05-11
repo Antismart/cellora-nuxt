@@ -8,7 +8,7 @@ definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const network = useNetwork()
 const tip = useLiveTip()
-const { user } = useAuth()
+const { displayUser: user } = useAuth()
 
 const usage = buildUsageSeries('24h')
 const totalReq = usage.reduce((s, p) => s + p.rest + p.graphql, 0)

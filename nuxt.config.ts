@@ -1,6 +1,23 @@
+// Single source of truth for the API origin. Default tracks the archived React scaffold
+// (which used `VITE_API_BASE_URL=http://localhost:8080`). In dev the Nitro proxy below
+// forwards same-origin /admin and /v1 requests there, so app code can use relative URLs.
+const apiBaseUrl = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
   ssr: true,
+  runtimeConfig: {
+    public: { apiBaseUrl },
+  },
+  nitro: {
+    // Dev-only: keep the session cookie same-origin by proxying to the Rust API.
+    // Prod is expected to do this via a reverse proxy / ingress (see backend-handoff §2).
+    devProxy: {
+      '/admin': { target: apiBaseUrl, changeOrigin: true },
+      '/v1': { target: apiBaseUrl, changeOrigin: true },
+      '/graphql': { target: apiBaseUrl, changeOrigin: true },
+    },
+  },
   app: {
     head: {
       title: 'Cellora — Indexed CKB data, one API call away',

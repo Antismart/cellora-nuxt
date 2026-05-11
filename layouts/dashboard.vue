@@ -3,7 +3,7 @@ import { NETWORKS } from '~/utils/data'
 
 const route = useRoute()
 const network = useNetwork()
-const { user, signedIn } = useAuth()
+const { displayUser, signOut: doSignOut } = useAuth()
 
 const navItems = [
   { id: 'overview', label: 'Overview', iconName: 'home' },
@@ -21,9 +21,8 @@ const currentPage = computed(() => navItems.find((n) => n.id === currentSlug.val
 const pageTitle = computed(() => navItems.find((n) => n.id === currentPage.value)?.label ?? 'Overview')
 const activeNet = computed(() => NETWORKS.find((n) => n.id === network.value)!)
 
-const signOut = () => {
-  signedIn.value = false
-  navigateTo('/')
+const signOut = async () => {
+  await doSignOut()
 }
 </script>
 
@@ -69,7 +68,7 @@ const signOut = () => {
       </nav>
 
       <div class="shell__foot">
-        <UserMenu :user="user" @sign-out="signOut" />
+        <UserMenu :user="displayUser" @sign-out="signOut" />
       </div>
     </aside>
 
