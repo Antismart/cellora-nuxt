@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import { fmtCompact, relTime, seedRand, hex } from '~/utils/format'
 import { apiKeysSeed, type ApiKey, type NetworkId } from '~/utils/data'
+import { apiFetch, ApiError } from '~/composables/useApiFetch'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const network = useNetwork()
+const { usingMock } = useAuth()
 
-const keys = ref<ApiKey[]>([...apiKeysSeed])
+const keys = ref<ApiKey[]>([])
+const loading = ref(false)
+const errorMsg = ref<string | null>(null)
+
 const createOpen = ref(false)
 const revealKey = ref<(ApiKey & { full: string }) | null>(null)
 const revokeTarget = ref<ApiKey | null>(null)
@@ -25,28 +30,133 @@ const tabs = computed(() => [
   { value: 'testnet', label: 'Testnet', count: keys.value.filter((k) => k.network === 'testnet').length },
 ])
 
-const onCreate = (label: string, tier: 'free' | 'starter' | 'pro', net: NetworkId) => {
-  const r = seedRand((Date.now() % 1000) + 1)
-  const prefix = 'cell_' + hex(r, 6).slice(2)
-  const tail = hex(r, 32).slice(2)
-  const full = prefix + '_' + tail
-  const newKey: ApiKey = {
-    id: 'k_' + Math.random().toString(36).slice(2, 6),
-    label, tier, network: net,
-    prefix, created: new Date().toISOString(),
-    last_used: null, status: 'active', request_24h: 0,
+const fetchKeys = async () => {
+  if (usingMock.value) {
+    keys.value = [...apiKeysSeed]
+    return
   }
-  keys.value = [newKey, ...keys.value]
-  createOpen.value = false
-  revealKey.value = { ...newKey, full }
+  loading.value = true
+  errorMsg.value = null
+  try {
+    const res = await apiFetch<{ keys: any[] }>('/admin/keys')
+    keys.value = res.keys.map((k) => ({
+      id: k.id,
+      label: k.label ?? 'unlabeled',
+      prefix: k.prefix,
+      tier: k.tier,
+      network: 'mainnet', // Backend keys are implicitly single-network for now
+      created: k.created_at,
+      last_used: k.last_used_at,
+      status: k.status,
+      request_24h: 0,
+    }))
+  } catch (e) {
+    const err = e as ApiError
+    errorMsg.value = err.message ?? 'Failed to load API keys'
+  } finally {
+    loading.value = false
+  }
 }
 
-const onRevoke = (id: string) => {
-  keys.value = keys.value.map((k) => (k.id === id ? { ...k, status: 'revoked' as const } : k))
-  revokeTarget.value = null
+onMounted(() => {
+  fetchKeys()
+})
+
+const onCreate = async (label: string, tier: 'free' | 'starter' | 'pro', net: NetworkId) => {
+  if (usingMock.value) {
+    const r = seedRand((Date.now() % 1000) + 1)
+    const prefix = 'cell_' + hex(r, 6).slice(2)
+    const tail = hex(r, 32).slice(2)
+    const full = prefix + '_' + tail
+    const newKey: ApiKey = {
+      id: 'k_' + Math.random().toString(36).slice(2, 6),
+      label, tier, network: net,
+      prefix, created: new Date().toISOString(),
+      last_used: null, status: 'active', request_24h: 0,
+    }
+    keys.value = [newKey, ...keys.value]
+    createOpen.value = false
+    revealKey.value = { ...newKey, full }
+    return
+  }
+
+  errorMsg.value = null
+  try {
+    const res = await apiFetch<{ key: any; secret: string }>('/admin/keys', {
+      method: 'POST',
+      body: { label, tier },
+    })
+    const newKey: ApiKey = {
+      id: res.key.id,
+      label: res.key.label ?? 'unlabeled',
+      prefix: res.key.prefix,
+      tier: res.key.tier,
+      network: net, // Visual tag based on user network selection
+      created: res.key.created_at,
+      last_used: res.key.last_used_at,
+      status: res.key.status,
+      request_24h: 0,
+    }
+    keys.value = [newKey, ...keys.value]
+    createOpen.value = false
+    revealKey.value = { ...newKey, full: res.secret }
+  } catch (e) {
+    const err = e as ApiError
+    errorMsg.value = err.message ?? 'Failed to generate API key'
+  }
 }
-const onRotate = (id: string) => {
-  keys.value = keys.value.map((k) => (k.id === id ? { ...k, status: 'rotated' as const } : k))
+
+const onRevoke = async (id: string) => {
+  if (usingMock.value) {
+    keys.value = keys.value.map((k) => (k.id === id ? { ...k, status: 'revoked' as const } : k))
+    revokeTarget.value = null
+    return
+  }
+
+  errorMsg.value = null
+  try {
+    await apiFetch(`/admin/keys/${id}`, {
+      method: 'DELETE',
+    })
+    keys.value = keys.value.map((k) => (k.id === id ? { ...k, status: 'revoked' as const } : k))
+    revokeTarget.value = null
+  } catch (e) {
+    const err = e as ApiError
+    errorMsg.value = err.message ?? 'Failed to revoke API key'
+  }
+}
+
+const onRotate = async (id: string) => {
+  const key = keys.value.find((k) => k.id === id)
+  if (!key) return
+
+  if (usingMock.value) {
+    keys.value = keys.value.map((k) => (k.id === id ? { ...k, status: 'rotated' as const } : k))
+    return
+  }
+
+  errorMsg.value = null
+  try {
+    const res = await apiFetch<{ key: any; secret: string }>(`/admin/keys/${id}/rotate`, {
+      method: 'POST',
+    })
+    const updatedKey: ApiKey = {
+      id: res.key.id,
+      label: res.key.label ?? 'unlabeled',
+      prefix: res.key.prefix,
+      tier: res.key.tier,
+      network: key.network,
+      created: res.key.created_at,
+      last_used: res.key.last_used_at,
+      status: res.key.status,
+      request_24h: key.request_24h,
+    }
+    keys.value = keys.value.map((k) => (k.id === id ? updatedKey : k))
+    revealKey.value = { ...updatedKey, full: res.secret }
+  } catch (e) {
+    const err = e as ApiError
+    errorMsg.value = err.message ?? 'Failed to rotate API key'
+  }
 }
 
 const tierVariant = (t: string) => (t === 'pro' ? 'brand' : t === 'starter' ? 'blue' : 'neutral')
@@ -54,6 +164,14 @@ const tierVariant = (t: string) => (t === 'pro' ? 'brand' : t === 'starter' ? 'b
 
 <template>
   <div class="kp">
+    <div v-if="errorMsg" class="kp__error fade-in">
+      <Icon name="alert" :size="14" style="color: var(--red); flex: 0 0 14px; margin-top: 2px" />
+      <div style="flex: 1">{{ errorMsg }}</div>
+      <button class="btn-reset kp__error-close" @click="errorMsg = null">
+        <Icon name="x" :size="12" />
+      </button>
+    </div>
+
     <div class="kp__head">
       <div class="kp__head-left">
         <Tabs v-model="filter" :items="tabs as any" />
@@ -67,8 +185,31 @@ const tierVariant = (t: string) => (t === 'pro' ? 'brand' : t === 'starter' ? 'b
       </Button>
     </div>
 
+    <Card v-if="loading" :padded="false">
+      <table class="kp__table">
+        <thead>
+          <tr>
+            <th v-for="h in ['Label', 'Prefix', 'Tier', 'Network', 'Created', 'Last used', '24h req', 'Status', '']" :key="h">{{ h }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="i in 3" :key="i" class="row net-bar">
+            <td class="kp__cell"><Skeleton w="120" h="14" /></td>
+            <td class="kp__cell"><Skeleton w="100" h="14" /></td>
+            <td class="kp__cell"><Skeleton w="50" h="16" /></td>
+            <td class="kp__cell"><Skeleton w="70" h="16" /></td>
+            <td class="kp__cell"><Skeleton w="80" h="14" /></td>
+            <td class="kp__cell"><Skeleton w="80" h="14" /></td>
+            <td class="kp__cell"><Skeleton w="40" h="14" /></td>
+            <td class="kp__cell"><Skeleton w="60" h="16" /></td>
+            <td class="kp__cell kp__actions"><Skeleton w="120" h="24" /></td>
+          </tr>
+        </tbody>
+      </table>
+    </Card>
+
     <EmptyState
-      v-if="filtered.length === 0"
+      v-else-if="filtered.length === 0"
       title="No API keys here"
       body="Create your first key to start hitting the indexer. Keys are reveal-once and Argon2id-hashed at rest — keep them safe."
     >
@@ -196,5 +337,21 @@ const tierVariant = (t: string) => (t === 'pro' ? 'brand' : t === 'starter' ? 'b
   border-radius: var(--radius-2);
   color: var(--text-muted);
   font-size: 12.5px;
+}
+.kp__error {
+  display: flex; gap: 10px;
+  padding: 12px 14px;
+  background: var(--red-tint);
+  border: 1px solid var(--red);
+  border-radius: var(--radius-2);
+  color: var(--text);
+  font-size: 13px;
+  align-items: center;
+}
+.kp__error-close {
+  margin-left: auto;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
 }
 </style>
