@@ -17,7 +17,7 @@ definePageMeta({ layout: 'dashboard' })
           Try the API Explorer
         </Button>
         <Button variant="outline" @click="navigateTo('/app/overview')">
-          <template #leftIcon><Icon name="arrowLeft" :size="14" /></template>
+          <template #leftIcon><Icon name="chevronLeft" :size="14" /></template>
           Back to Dashboard
         </Button>
       </div>
