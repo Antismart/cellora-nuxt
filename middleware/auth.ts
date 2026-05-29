@@ -7,5 +7,10 @@ export default defineNuxtRouteMiddleware(async () => {
 
   const { signedIn, ready, refresh } = useAuth()
   if (!ready.value) await refresh()
-  if (!signedIn.value) return navigateTo('/sign-in')
+  if (!signedIn.value) {
+    // If we catch them signed out during initial hydration, a soft redirect
+    // causes a massive Vue hydration mismatch (server rendered the dashboard,
+    // client expects the sign-in page). Force a hard reload.
+    return navigateTo('/sign-in', { external: true })
+  }
 })
