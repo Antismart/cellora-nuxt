@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const authing = ref(false)
-const { signedIn, ready, usingMock, refresh, signIn } = useAuth()
+const { signedIn, ready, refresh, signIn } = useAuth()
 
 // If we're already signed in, bounce straight to the dashboard.
 onMounted(async () => {
@@ -11,12 +11,7 @@ onMounted(async () => {
 const handleAuth = () => {
   authing.value = true
   // Real path: full-page redirect to GitHub (browser leaves Nuxt).
-  // Mock path: short delay for visual feedback, then client-side install.
-  if (usingMock.value) {
-    setTimeout(signIn, 600)
-  } else {
-    signIn()
-  }
+  signIn()
 }
 
 useHead({ title: 'Sign in · Cellora' })

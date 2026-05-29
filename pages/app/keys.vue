@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { fmtCompact, relTime, seedRand, hex } from '~/utils/format'
-import { apiKeysSeed, type ApiKey, type NetworkId } from '~/utils/data'
+import { type ApiKey, type NetworkId } from '~/utils/data'
 import { apiFetch, ApiError } from '~/composables/useApiFetch'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const network = useNetwork()
-const { usingMock } = useAuth()
+
 
 const keys = ref<ApiKey[]>([])
 const loading = ref(false)
@@ -31,10 +31,6 @@ const tabs = computed(() => [
 ])
 
 const fetchKeys = async () => {
-  if (usingMock.value) {
-    keys.value = [...apiKeysSeed]
-    return
-  }
   loading.value = true
   errorMsg.value = null
   try {
@@ -63,23 +59,6 @@ onMounted(() => {
 })
 
 const onCreate = async (label: string, tier: 'free' | 'starter' | 'pro', net: NetworkId) => {
-  if (usingMock.value) {
-    const r = seedRand((Date.now() % 1000) + 1)
-    const prefix = 'cell_' + hex(r, 6).slice(2)
-    const tail = hex(r, 32).slice(2)
-    const full = prefix + '_' + tail
-    const newKey: ApiKey = {
-      id: 'k_' + Math.random().toString(36).slice(2, 6),
-      label, tier, network: net,
-      prefix, created: new Date().toISOString(),
-      last_used: null, status: 'active', request_24h: 0,
-    }
-    keys.value = [newKey, ...keys.value]
-    createOpen.value = false
-    revealKey.value = { ...newKey, full }
-    return
-  }
-
   errorMsg.value = null
   try {
     const res = await apiFetch<{ key: any; secret: string }>('/admin/keys', {
@@ -107,12 +86,6 @@ const onCreate = async (label: string, tier: 'free' | 'starter' | 'pro', net: Ne
 }
 
 const onRevoke = async (id: string) => {
-  if (usingMock.value) {
-    keys.value = keys.value.map((k) => (k.id === id ? { ...k, status: 'revoked' as const } : k))
-    revokeTarget.value = null
-    return
-  }
-
   errorMsg.value = null
   try {
     await apiFetch(`/admin/keys/${id}`, {
@@ -129,11 +102,6 @@ const onRevoke = async (id: string) => {
 const onRotate = async (id: string) => {
   const key = keys.value.find((k) => k.id === id)
   if (!key) return
-
-  if (usingMock.value) {
-    keys.value = keys.value.map((k) => (k.id === id ? { ...k, status: 'rotated' as const } : k))
-    return
-  }
 
   errorMsg.value = null
   try {

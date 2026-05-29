@@ -1,34 +1,31 @@
 <script setup lang="ts">
 import { fmtNum, relTime } from '~/utils/format'
-import { NETWORKS, TIP_BASE, statusByNetwork as initialStatusByNetwork } from '~/utils/data'
+import { NETWORKS } from '~/utils/data'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const network = useNetwork()
 const tip = useLiveTip()
-const { data: statusData } = useFetch('/admin/metrics/status')
-
-const statusByNetwork = computed(() => {
-  const merged = { ...initialStatusByNetwork }
-  if (statusData.value) {
-    merged['mainnet'] = {
-      ...merged['mainnet'],
-      snapshot_age_seconds: statusData.value.snapshot_age_seconds,
-      nodes: statusData.value.nodes,
-    }
-  }
-  return merged
-})
+const { data: statusData } = useFetch('/admin/metrics/status', { query: { network } })
 
 const tipFor = (id: 'mainnet' | 'testnet') => {
   if (id === network.value) return tip.value
   return {
-    indexer_tip: TIP_BASE - (id === 'testnet' ? 12 : 0),
-    node_tip: TIP_BASE + 3 - (id === 'testnet' ? 12 : 0),
-    lag_blocks: id === 'testnet' ? 1 : 3,
-    snapshot_age_seconds: 4,
+    indexer_tip: 0,
+    node_tip: 0,
+    lag_blocks: 0,
+    snapshot_age_seconds: 0,
     is_stale: false,
   }
+}
+
+const activeNet = computed(() => NETWORKS.find((n) => n.id === network.value))
+
+const getStatus = (id: string) => {
+  if (statusData.value && statusData.value.network === id) {
+    return statusData.value
+  }
+  return { snapshot_age_seconds: 0, nodes: [] }
 }
 </script>
 
@@ -45,47 +42,44 @@ const tipFor = (id: 'mainnet' | 'testnet') => {
       <Badge variant="brand" mono dot="pulse">live</Badge>
     </div>
 
-    <Card v-for="n in NETWORKS" :key="n.id" :padded="false">
+    <Card v-if="activeNet" :padded="false">
       <div class="st__net-head">
         <div class="st__net-head-left">
-          <span class="pulse-dot st__net-dot" :style="{ background: n.accent }" />
-          <span class="st__net-name">{{ n.label }}</span>
-          <Badge variant="outline" size="sm" mono>{{ statusByNetwork[n.id].region }}</Badge>
+          <span class="pulse-dot st__net-dot" :style="{ background: activeNet.accent }" />
+          <span class="st__net-name">{{ activeNet.label }}</span>
+          <Badge variant="outline" size="sm" mono>us-east-1</Badge>
         </div>
-        <span class="mono st__net-url">https://api.cellora.dev/v1/{{ n.id }}</span>
+        <span class="mono st__net-url">https://api.cellora.dev/v1/{{ activeNet.id }}</span>
       </div>
 
       <div class="st__net-stats">
-        <StatCell label="indexer_tip" :value="fmtNum(tipFor(n.id).indexer_tip)" />
-        <StatCell label="node_tip" :value="fmtNum(tipFor(n.id).node_tip)" />
-        <StatCell label="lag_blocks" :value="String(tipFor(n.id).lag_blocks)" accent="var(--brand-strong)" :sub="`~${tipFor(n.id).lag_blocks * 8}s`" />
-        <StatCell label="snapshot_age" :value="`${statusByNetwork[n.id].snapshot_age_seconds}s`" sub="rolling" />
+        <StatCell label="indexer_tip" :value="fmtNum(tipFor(activeNet.id).indexer_tip)" />
+        <StatCell label="node_tip" :value="fmtNum(tipFor(activeNet.id).node_tip)" />
+        <StatCell label="lag_blocks" :value="String(tipFor(activeNet.id).lag_blocks)" accent="var(--brand-strong)" :sub="`~${tipFor(activeNet.id).lag_blocks * 8}s`" />
+        <StatCell label="snapshot_age" :value="`${getStatus(activeNet.id).snapshot_age_seconds}s`" sub="rolling" />
       </div>
 
       <div class="st__net-body">
         <div>
-          <div class="micro" style="margin-bottom: 12px">nodes · {{ statusByNetwork[n.id].nodes.length }}</div>
-          <div class="st__nodes">
-            <div v-for="node in statusByNetwork[n.id].nodes" :key="node.id" class="st__node">
-              <span class="pulse-dot st__node-dot" :style="{ background: node.ok ? 'var(--brand)' : 'var(--red)' }" />
-              <span class="mono st__node-id">{{ node.id }}</span>
-              <Badge variant="outline" size="sm">{{ node.role }}</Badge>
+          <div class="micro" style="margin-bottom: 12px">nodes · {{ getStatus(activeNet.id).nodes.length }}</div>
+          <div class="st__nodes" v-if="getStatus(activeNet.id).nodes.length > 0">
+            <div v-for="node in getStatus(activeNet.id).nodes" :key="node.name" class="st__node">
+              <span class="pulse-dot st__node-dot" :style="{ background: node.sync_status === 'synced' ? 'var(--brand)' : 'var(--amber)' }" />
+              <span class="mono st__node-id">{{ node.name }}</span>
+              <Badge variant="outline" size="sm">{{ node.sync_status }}</Badge>
               <span style="flex: 1" />
-              <span class="mono st__node-lag">lag {{ node.lag }}</span>
+              <span class="mono st__node-lag">lag 0</span>
             </div>
+          </div>
+          <div v-else class="st__empty-nodes">
+            No nodes configured
           </div>
         </div>
         <div>
           <div class="micro" style="margin-bottom: 12px">recent reorg</div>
           <div class="st__reorg">
-            <div class="st__reorg-head">
-              <Badge variant="amber" size="sm">depth {{ statusByNetwork[n.id].last_reorg.depth }}</Badge>
-              <span class="mono st__reorg-ts">{{ relTime(statusByNetwork[n.id].last_reorg.ts) }}</span>
-            </div>
             <div class="st__reorg-text">
-              Reorg detected at block <span class="mono" style="color: var(--text)">#{{ fmtNum(statusByNetwork[n.id].last_reorg.block) }}</span>.
-              Cellora rolled back <span class="mono">{{ statusByNetwork[n.id].last_reorg.depth }}</span> block{{ statusByNetwork[n.id].last_reorg.depth > 1 ? 's' : '' }} transactionally.
-              Reads were blocked for &lt;1s.
+              No recent reorgs detected on this network.
             </div>
           </div>
         </div>
@@ -93,8 +87,11 @@ const tipFor = (id: 'mainnet' | 'testnet') => {
     </Card>
 
     <Card>
-      <CardHeader title="Uptime, last 30 days" subtitle="Per-network availability — measured from the API gateway" />
-      <UptimeBars />
+      <div class="st__foot">
+        <div class="st__foot-title">Need custom SLAs or dedicated nodes?</div>
+        <div class="st__foot-body">Pro and Enterprise users can provision dedicated read-replicas directly via the Cellora API. Replicas are physically isolated from the shared token-bucket limits.</div>
+        <Button variant="outline">Contact sales</Button>
+      </div>
     </Card>
   </div>
 </template>
@@ -103,52 +100,53 @@ const tipFor = (id: 'mainnet' | 'testnet') => {
 .st { display: flex; flex-direction: column; gap: 20px; }
 .st__banner {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 18px;
-  background: var(--brand-tint-2);
-  border: 1px solid oklch(36% 0.10 150);
-  border-radius: 10px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-2);
+  padding: 16px 20px;
 }
-.st__banner-left { display: flex; align-items: center; gap: 12px; }
-.st__banner-icon {
-  width: 30px; height: 30px; border-radius: 8px;
-  background: var(--brand-tint);
-  display: grid; place-items: center;
-  color: var(--brand);
-}
-.st__banner-title { font-size: 14px; font-weight: 600; color: var(--brand-strong); }
+.st__banner-left { display: flex; align-items: center; gap: 14px; }
+.st__banner-icon { color: var(--brand); display: flex; align-items: center; justify-content: center; }
+.st__banner-title { font-size: 14.5px; font-weight: 500; margin-bottom: 2px; }
 .st__banner-sub { font-size: 12.5px; color: var(--text-muted); }
 .st__net-head {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border-subtle);
   display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elev);
 }
 .st__net-head-left { display: flex; align-items: center; gap: 10px; }
-.st__net-dot { width: 8px; height: 8px; border-radius: 99px; }
-.st__net-name { font-size: 14px; font-weight: 600; }
-.st__net-url { font-size: 12px; color: var(--text-dim); }
+.st__net-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
+.st__net-name { font-size: 14px; font-weight: 500; }
+.st__net-url { font-size: 12.5px; color: var(--text-muted); }
 .st__net-stats {
   display: grid; grid-template-columns: repeat(4, 1fr);
   border-bottom: 1px solid var(--border-subtle);
 }
-.st__net-body { padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-.st__nodes { display: flex; flex-direction: column; gap: 6px; }
+.st__net-body {
+  display: grid; grid-template-columns: 320px 1fr; gap: 32px;
+  padding: 20px;
+}
+.st__nodes { display: flex; flex-direction: column; gap: 8px; }
 .st__node {
   display: flex; align-items: center; gap: 10px;
-  padding: 8px 10px;
-  background: var(--bg-elev);
+  padding: 10px 12px;
+  background: var(--bg-base);
   border: 1px solid var(--border-subtle);
-  border-radius: 6px;
+  border-radius: var(--radius-2);
 }
-.st__node-dot { width: 7px; height: 7px; border-radius: 99px; }
-.st__node-id { font-size: 12px; color: var(--text); }
-.st__node-lag { font-size: 12px; color: var(--text-dim); }
+.st__empty-nodes { font-size: 13px; color: var(--text-muted); }
+.st__node-dot { width: 6px; height: 6px; border-radius: 50%; }
+.st__node-id { font-size: 12.5px; font-weight: 500; }
+.st__node-lag { font-size: 12px; color: var(--text-muted); }
 .st__reorg {
-  padding: 14px;
-  background: var(--bg-elev);
-  border: 1px solid var(--border-subtle);
-  border-radius: 6px;
+  padding: 14px 16px;
+  background: var(--bg-base);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-2);
 }
-.st__reorg-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.st__reorg-ts { font-size: 11.5px; color: var(--text-dim); }
-.st__reorg-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; }
+.st__reorg-text { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-top: 8px; }
+.st__foot { padding: 4px 0; }
+.st__foot-title { font-size: 14px; font-weight: 500; margin-bottom: 6px; }
+.st__foot-body { font-size: 13px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px; max-width: 600px; }
 </style>
