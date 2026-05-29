@@ -12,5 +12,8 @@ export default defineEventHandler((event) => {
     headers: {
       cookie: getRequestHeader(event, 'cookie') || '',
     },
+    fetchOptions: {
+      redirect: 'manual',
+    },
   })
 })

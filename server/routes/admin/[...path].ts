@@ -17,5 +17,8 @@ export default defineEventHandler((event) => {
       // Explicitly forward the cookie header from the browser request
       cookie: getRequestHeader(event, 'cookie') || '',
     },
+    fetchOptions: {
+      redirect: 'manual',
+    },
   })
 })
