@@ -1,23 +1,25 @@
 <script setup lang="ts">
 import { fmtNum, hl } from '~/utils/format'
-import { apiKeysSeed, sampleCell, sample_graphql, sample_graphql_response } from '~/utils/data'
+import { sample_graphql } from '~/utils/data'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
-const network = useNetwork()
 const tip = useLiveTip()
 
 const tab = ref<'rest' | 'graphql'>('rest')
 const endpoint = ref('/v1/cells')
 type Param = { key: string; value: string }
 const params = ref<Param[]>([
-  { key: 'lock_hash', value: '0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8' },
-  { key: 'limit', value: '20' },
+  { key: 'limit', value: '5' },
 ])
-const activeKey = ref('k_01')
+
+// The user must paste a real API key since the dashboard only has the prefix
+const activeApiKey = ref('')
+
 const running = ref(false)
 const response = ref<any>(null)
-const latency = ref(38)
+const responseHeaders = ref<Headers | null>(null)
+const latency = ref(0)
 const gqlQuery = ref(sample_graphql)
 
 const restEndpoints = [
@@ -26,48 +28,71 @@ const restEndpoints = [
   '/v1/transactions/{hash}', '/v1/scripts/well-known', '/v1/health',
 ]
 
-const availableKeys = computed(() =>
-  apiKeysSeed
-    .filter((k) => k.network === network.value && k.status !== 'revoked')
-    .map((k) => ({ value: k.id, label: `${k.label} · ${k.prefix}…` })),
-)
-
 const tabs = [
   { value: 'rest', label: 'REST · OpenAPI 3.1', iconName: 'globe' },
   { value: 'graphql', label: 'GraphQL · /graphql', iconName: 'hash' },
 ]
 
-let timer: ReturnType<typeof setTimeout> | null = null
-const run = () => {
+const run = async () => {
+  if (!activeApiKey.value) {
+    response.value = { error: 'Please enter a valid API key to run queries.' }
+    return
+  }
+
   running.value = true
   response.value = null
-  if (timer) clearTimeout(timer)
-  timer = setTimeout(() => {
-    const ms = 30 + Math.floor(Math.random() * 80)
-    latency.value = ms
-    if (tab.value === 'rest') {
-      response.value = {
-        data: [sampleCell],
-        next_cursor: 'eyJibG9ja19udW1iZXIiOjE0ODIzMzI4LC…',
-        meta: { indexer_tip: tip.value.indexer_tip, node_tip: tip.value.node_tip },
-      }
-    } else {
-      response.value = JSON.parse(sample_graphql_response)
-    }
-    running.value = false
-  }, 220)
-}
+  responseHeaders.value = null
+  
+  const headers = {
+    Authorization: `Bearer ${activeApiKey.value}`
+  }
 
-watch(tab, run, { immediate: true })
-onBeforeUnmount(() => { if (timer) clearTimeout(timer) })
+  try {
+    const start = Date.now()
+    if (tab.value === 'rest') {
+      // Replace path parameters if any (e.g. {number} -> actual value from params)
+      let url = endpoint.value
+      const queryParams = new URLSearchParams()
+      
+      for (const p of params.value) {
+        if (!p.key) continue
+        if (url.includes(`{${p.key}}`)) {
+          url = url.replace(`{${p.key}}`, p.value)
+        } else {
+          queryParams.append(p.key, p.value)
+        }
+      }
+      
+      const qs = queryParams.toString()
+      const finalUrl = `${url}${qs ? '?' + qs : ''}`
+      
+      const res = await $fetch.raw(finalUrl, { headers })
+      latency.value = Date.now() - start
+      response.value = res._data
+      responseHeaders.value = res.headers
+    } else {
+      const res = await $fetch.raw('/graphql', { 
+        method: 'POST', 
+        body: { query: gqlQuery.value }, 
+        headers 
+      })
+      latency.value = Date.now() - start
+      response.value = res._data
+      responseHeaders.value = res.headers
+    }
+  } catch (err: any) {
+    latency.value = Date.now() - (err.response?.start || Date.now()) // Approximation if we don't track start inside interceptor
+    response.value = err.response?._data || { error: err.message }
+    responseHeaders.value = err.response?.headers || null
+  } finally {
+    running.value = false
+  }
+}
 
 const responseHtml = computed(() => (response.value ? hl.json(JSON.stringify(response.value, null, 2)) : ''))
 const responseRaw = computed(() => (response.value ? JSON.stringify(response.value, null, 2) : ''))
 
-const authValue = computed(() => {
-  const k = apiKeysSeed.find((x) => x.id === activeKey.value)
-  return `Bearer ${k?.prefix}…`
-})
+const authValue = computed(() => `Bearer ${activeApiKey.value ? '********' : '<paste-key-here>'}`)
 
 const addParam = () => params.value.push({ key: '', value: '' })
 const removeParam = (i: number) => params.value.splice(i, 1)
@@ -78,8 +103,14 @@ const removeParam = (i: number) => params.value.splice(i, 1)
     <div class="ex__head">
       <Tabs v-model="tab" :items="tabs as any" />
       <div class="ex__head-right">
-        <span class="micro" style="color: var(--text-dim)">auth header</span>
-        <Select v-model="activeKey" :options="availableKeys" />
+        <span class="micro" style="color: var(--text-dim)">api key</span>
+        <Input 
+          v-model="activeApiKey" 
+          placeholder="Paste API key (cell_...)" 
+          type="password"
+          style="width: 240px"
+          mono
+        />
         <Button variant="primary" size="md" :loading="running" @click="run">
           <template v-if="!running" #leftIcon><Icon name="zap" :size="13" /></template>
           {{ running ? 'Running…' : tab === 'rest' ? 'Send' : 'Run query' }}
@@ -119,8 +150,8 @@ const removeParam = (i: number) => params.value.splice(i, 1)
             <div class="micro" style="margin-bottom: 8px">query parameters</div>
             <div class="ex__params">
               <div v-for="(p, i) in params" :key="i" class="ex__param-row">
-                <Input v-model="p.key" mono />
-                <Input v-model="p.value" mono />
+                <Input v-model="p.key" placeholder="key" mono />
+                <Input v-model="p.value" placeholder="value" mono />
                 <Button variant="ghost" size="md" @click="removeParam(i)">
                   <Icon name="x" :size="13" />
                 </Button>
@@ -141,16 +172,23 @@ const removeParam = (i: number) => params.value.splice(i, 1)
         <Card :padded="false">
           <div class="ex__res-head">
             <div class="ex__res-meta">
-              <Badge variant="brand" size="sm" dot>200 OK</Badge>
+              <Badge :variant="response?.error || response?.code ? 'amber' : 'brand'" size="sm" dot>
+                {{ response?.error || response?.code ? 'Error' : 'OK' }}
+              </Badge>
               <span class="mono ex__res-meta-text">{{ latency }}ms</span>
-              <span class="mono ex__res-meta-text">x-indexer-tip {{ fmtNum(tip.indexer_tip) }}</span>
-              <span class="mono ex__res-meta-text">x-ratelimit-remaining 2,994</span>
+              <span v-if="responseHeaders && responseHeaders.get('x-indexer-tip')" class="mono ex__res-meta-text">
+                x-indexer-tip {{ fmtNum(Number(responseHeaders.get('x-indexer-tip'))) }}
+              </span>
+              <span v-if="responseHeaders && responseHeaders.get('x-ratelimit-remaining')" class="mono ex__res-meta-text">
+                x-ratelimit-remaining {{ fmtNum(Number(responseHeaders.get('x-ratelimit-remaining'))) }}
+              </span>
             </div>
             <CopyButton :value="responseRaw" />
           </div>
           <div class="ex__res-body">
             <Skeleton v-if="running" :h="140" />
             <pre v-else-if="response" class="fade-in ex__pre"><span v-html="responseHtml" /></pre>
+            <div v-else style="color: var(--text-dim); font-style: italic;">Response will appear here...</div>
           </div>
         </Card>
       </div>
@@ -166,13 +204,17 @@ const removeParam = (i: number) => params.value.splice(i, 1)
       </Card>
       <Card :padded="false">
         <div class="ex__res-head">
-          <Badge variant="brand" size="sm" dot>200 OK</Badge>
+          <Badge :variant="response?.errors ? 'amber' : 'brand'" size="sm" dot>
+             {{ response?.errors ? 'Error' : 'OK' }}
+          </Badge>
           <span class="mono ex__res-meta-text">{{ latency }}ms</span>
           <span style="flex: 1" />
           <CopyButton :value="responseRaw" />
         </div>
         <div class="ex__res-body" style="min-height: 360px">
-          <pre v-if="response" class="fade-in ex__pre"><span v-html="responseHtml" /></pre>
+          <Skeleton v-if="running" :h="140" />
+          <pre v-else-if="response" class="fade-in ex__pre"><span v-html="responseHtml" /></pre>
+          <div v-else style="color: var(--text-dim); font-style: italic;">Response will appear here...</div>
         </div>
       </Card>
     </div>

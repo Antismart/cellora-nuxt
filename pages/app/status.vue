@@ -1,11 +1,24 @@
 <script setup lang="ts">
 import { fmtNum, relTime } from '~/utils/format'
-import { NETWORKS, TIP_BASE, statusByNetwork } from '~/utils/data'
+import { NETWORKS, TIP_BASE, statusByNetwork as initialStatusByNetwork } from '~/utils/data'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
 const network = useNetwork()
 const tip = useLiveTip()
+const { data: statusData } = useFetch('/admin/metrics/status')
+
+const statusByNetwork = computed(() => {
+  const merged = { ...initialStatusByNetwork }
+  if (statusData.value) {
+    merged['mainnet'] = {
+      ...merged['mainnet'],
+      snapshot_age_seconds: statusData.value.snapshot_age_seconds,
+      nodes: statusData.value.nodes,
+    }
+  }
+  return merged
+})
 
 const tipFor = (id: 'mainnet' | 'testnet') => {
   if (id === network.value) return tip.value

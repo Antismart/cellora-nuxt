@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { fmtCompact, fmtNum, relTime } from '~/utils/format'
 import {
-  apiKeysSeed, buildUsageSeries, endpointBreakdown,
+  apiKeysSeed, endpointBreakdown,
   recent429s, tiers,
 } from '~/utils/data'
 
@@ -11,7 +11,8 @@ const range = ref<'24h' | '7d' | '30d'>('24h')
 const surface = ref<'all' | 'rest' | 'graphql'>('all')
 const keyFilter = ref<string>('all')
 
-const data = computed(() => buildUsageSeries(range.value))
+const { data: usageData } = useFetch('/admin/metrics/usage', { default: () => [] })
+const data = computed(() => usageData.value)
 const total = computed(() => data.value.reduce((s, p) => s + p.rest + p.graphql, 0))
 const ceiling = computed(() => tiers.pro.rest_burst * 60)
 

@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { fmtNum } from '~/utils/format'
-import {
-  buildUsageSeries, recentActivity, statusByNetwork,
-} from '~/utils/data'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
@@ -10,11 +7,15 @@ const network = useNetwork()
 const tip = useLiveTip()
 const { displayUser: user } = useAuth()
 
-const usage = buildUsageSeries('24h')
-const totalReq = usage.reduce((s, p) => s + p.rest + p.graphql, 0)
-const restTotal = usage.reduce((s, p) => s + p.rest, 0)
-const gqlTotal = usage.reduce((s, p) => s + p.graphql, 0)
-const stats = computed(() => statusByNetwork[network.value])
+const { data: usageData } = useFetch('/admin/metrics/usage', { default: () => [] })
+const { data: recentActivity } = useFetch('/admin/metrics/activity', { default: () => [] })
+const { data: statusData } = useFetch('/admin/metrics/status')
+
+const usage = computed(() => usageData.value)
+const totalReq = computed(() => usage.value.reduce((s, p) => s + p.rest + p.graphql, 0))
+const restTotal = computed(() => usage.value.reduce((s, p) => s + p.rest, 0))
+const gqlTotal = computed(() => usage.value.reduce((s, p) => s + p.graphql, 0))
+const stats = computed(() => statusData.value || { snapshot_age_seconds: 0 })
 </script>
 
 <template>
