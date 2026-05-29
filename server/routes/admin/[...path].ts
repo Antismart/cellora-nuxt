@@ -8,7 +8,7 @@
  */
 import { proxyRequest } from 'h3'
 
-const target = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
+const target = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8080'
 
 export default defineEventHandler((event) => {
   const path = '/admin/' + (event.context.params?.path ?? '')

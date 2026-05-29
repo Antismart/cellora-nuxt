@@ -1,7 +1,7 @@
 // Single source of truth for the API origin. Default tracks the archived React scaffold
 // (which used `VITE_API_BASE_URL=http://localhost:8080`). In dev the Nitro proxy below
 // forwards same-origin /admin and /v1 requests there, so app code can use relative URLs.
-const apiBaseUrl = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:8080'
+const apiBaseUrl = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8080'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
