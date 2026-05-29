@@ -57,18 +57,15 @@ const signOut = async () => {
         </NuxtLink>
         <div class="shell__spacer" />
         <div class="micro shell__nav-section">resources</div>
-        <a href="#" class="btn-reset shell__navlink">
+        <NuxtLink to="/docs" class="btn-reset shell__navlink">
           <Icon name="book" :size="15" /> Docs
-          <Icon name="arrowUpRight" :size="11" class="shell__navlink-tail" />
-        </a>
-        <a href="#" class="btn-reset shell__navlink">
-          <Icon name="github" :size="15" /> GitHub
-          <Icon name="arrowUpRight" :size="11" class="shell__navlink-tail" />
-        </a>
+        </NuxtLink>
       </nav>
 
       <div class="shell__foot">
-        <UserMenu :user="displayUser" @sign-out="signOut" />
+        <ClientOnly>
+          <UserMenu :user="displayUser" @sign-out="signOut" />
+        </ClientOnly>
       </div>
     </aside>
 

@@ -24,12 +24,10 @@ const initials = (h: string) => h.slice(0, 2).toUpperCase()
         <div class="um__email">{{ user.email }}</div>
         <div class="um__signed-via">Signed in via GitHub</div>
       </div>
-      <button class="btn-reset um__item">
+      <NuxtLink to="/app/settings" class="btn-reset um__item">
         <Icon name="settings" :size="13" />Account settings
-      </button>
-      <button class="btn-reset um__item">
-        <Icon name="github" :size="13" />View on GitHub
-      </button>
+      </NuxtLink>
+
       <div class="um__divider" />
       <button class="btn-reset um__item um__item--danger" @click="$emit('signOut')">
         <Icon name="logout" :size="13" />Sign out

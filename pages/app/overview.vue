@@ -8,8 +8,13 @@ const tip = useLiveTip()
 const { displayUser: user } = useAuth()
 
 const { data: usageData } = useFetch('/admin/metrics/usage', { default: () => [] })
-const { data: recentActivity } = useFetch('/admin/metrics/activity', { default: () => [] })
+const { data: activityData } = useFetch('/admin/metrics/activity', { default: () => [] })
 const { data: statusData } = useFetch('/admin/metrics/status')
+const { data: summaryData } = useFetch('/admin/metrics/summary', { default: () => ({ rest_p95_ms: 0, graphql_p95_ms: 0, error_rate: 0, vs_yesterday_percent: 0 }) })
+const { data: keysRes } = useFetch<{keys: any[]}>('/admin/keys', { default: () => ({keys: []}) })
+
+const activeKeysCount = computed(() => keysRes.value?.keys?.filter(k => k.status === 'active').length || 0)
+const summary = computed(() => summaryData.value)
 
 const usage = computed(() => usageData.value)
 const totalReq = computed(() => usage.value.reduce((s, p) => s + p.rest + p.graphql, 0))
@@ -25,11 +30,16 @@ const stats = computed(() => statusData.value || { snapshot_age_seconds: 0 })
       <div class="ov__welcome-text">
         <div class="micro" style="margin-bottom: 8px">welcome back</div>
         <div class="ov__hey">
-          Hey, <span class="mono" style="color: var(--brand-strong)">@{{ user.handle }}</span>.
+          <ClientOnly>
+            Hey, <span class="mono" style="color: var(--brand-strong)">@{{ user.handle }}</span>.
+            <template #fallback>
+              Hey, <span class="mono" style="color: var(--brand-strong)">@guest</span>.
+            </template>
+          </ClientOnly>
         </div>
         <div class="ov__welcome-blurb">
           You're indexing <span class="mono" style="color: var(--text)">{{ fmtNum(totalReq) }}</span> requests in the last 24h across
-          <span class="mono" style="color: var(--text)">3</span> active keys. Indexer's healthy, lag is
+          <span class="mono" style="color: var(--text)">{{ activeKeysCount }}</span> active keys. Indexer's healthy, lag is
           <span class="mono" style="color: var(--brand)">{{ tip.lag_blocks }} blocks</span>.
         </div>
       </div>
@@ -71,7 +81,7 @@ const stats = computed(() => statusData.value || { snapshot_age_seconds: 0 })
         </CardHeader>
         <table class="ov__act">
           <tbody>
-            <tr v-for="(r, i) in recentActivity" :key="i" class="row" :style="{ borderTop: i === 0 ? 'none' : '1px solid var(--border-subtle)' }">
+            <tr v-for="(r, i) in activityData" :key="i" class="row" :style="{ borderTop: i === 0 ? 'none' : '1px solid var(--border-subtle)' }">
               <td class="ov__act-method-cell">
                 <Badge :variant="r.method === 'POST' ? 'brand' : 'neutral'" mono size="sm">{{ r.method }}</Badge>
               </td>
@@ -92,7 +102,9 @@ const stats = computed(() => statusData.value || { snapshot_age_seconds: 0 })
         </CardHeader>
         <div class="ov__total-row">
           <span class="mono ov__total">{{ fmtNum(totalReq) }}</span>
-          <Badge variant="brand" size="sm" mono>+18% vs yesterday</Badge>
+          <Badge :variant="summary.vs_yesterday_percent >= 0 ? 'brand' : 'amber'" size="sm" mono>
+            {{ summary.vs_yesterday_percent >= 0 ? '+' : '' }}{{ summary.vs_yesterday_percent.toFixed(1) }}% vs yesterday
+          </Badge>
         </div>
         <SparkChart :data="usage" />
         <div class="ov__metric-row">
@@ -106,11 +118,13 @@ const stats = computed(() => statusData.value || { snapshot_age_seconds: 0 })
           </div>
           <div>
             <div class="micro">p95</div>
-            <div class="mono ov__metric-val">42ms</div>
+            <div class="mono ov__metric-val">{{ Math.round(summary.rest_p95_ms) }}ms</div>
           </div>
           <div>
             <div class="micro">4xx + 5xx</div>
-            <div class="mono ov__metric-val" style="color: var(--amber)">0.41%</div>
+            <div class="mono ov__metric-val" :style="{ color: summary.error_rate > 1 ? 'var(--amber)' : 'var(--text)' }">
+              {{ summary.error_rate.toFixed(2) }}%
+            </div>
           </div>
         </div>
       </Card>

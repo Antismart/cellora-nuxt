@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { fmtCompact, fmtNum, relTime } from '~/utils/format'
-import {
-  apiKeysSeed, endpointBreakdown,
-  recent429s, tiers,
-} from '~/utils/data'
+import { tiers } from '~/utils/data'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
@@ -22,10 +19,21 @@ const rangeTabs = [
   { value: '30d', label: '30d' },
 ]
 
+const { data: keysRes } = useFetch<{keys: any[]}>('/admin/keys', { default: () => ({keys: []}) })
 const keyOptions = computed(() => [
   { value: 'all', label: 'All keys' },
-  ...apiKeysSeed.map((k) => ({ value: k.id, label: k.label })),
+  ...(keysRes.value?.keys || []).map((k) => ({ value: k.id, label: k.label ?? 'unlabeled' })),
 ])
+
+// These are now wired to the backend
+const { data: summaryData } = useFetch('/admin/metrics/summary', { default: () => ({ rest_p95_ms: 0, graphql_p95_ms: 0, rate_limit_rate: 0, rate_limit_count: 0 }) })
+const summary = computed(() => summaryData.value)
+
+const { data: breakdownDataRef } = useFetch('/admin/metrics/endpoints', { default: () => [] })
+const breakdownData = computed(() => breakdownDataRef.value)
+
+const { data: rateLimitEventsRef } = useFetch('/admin/metrics/rate-limits', { default: () => [] })
+const rateLimitEvents = computed(() => rateLimitEventsRef.value)
 
 const surfaceOptions = [
   { value: 'all', label: 'REST + GraphQL' },
@@ -39,7 +47,7 @@ const legendItems = [
   { label: 'Tier ceiling', color: 'var(--amber)', dashed: true },
 ]
 
-const maxRequests = computed(() => endpointBreakdown[0].requests)
+const maxRequests = computed(() => breakdownData.value.length ? breakdownData.value[0].requests : 1)
 </script>
 
 <template>
@@ -57,9 +65,9 @@ const maxRequests = computed(() => endpointBreakdown[0].requests)
 
     <div class="up__tiles">
       <Stat label="Total requests" :value="fmtCompact(total)" :sub="`${range} window`" icon-name="activity" />
-      <Stat label="REST p95" value="42 ms" sub="ceiling 200 ms" icon-name="zap" />
-      <Stat label="GraphQL p95" value="68 ms" sub="ceiling 300 ms" icon-name="zap" />
-      <Stat label="429 rate" value="0.41%" accent="var(--amber)" sub="14 events in 24h" icon-name="alert" />
+      <Stat label="REST p95" :value="`${Math.round(summary.rest_p95_ms)} ms`" sub="ceiling 200 ms" icon-name="zap" />
+      <Stat label="GraphQL p95" :value="`${Math.round(summary.graphql_p95_ms)} ms`" sub="ceiling 300 ms" icon-name="zap" />
+      <Stat label="429 rate" :value="`${summary.rate_limit_rate.toFixed(2)}%`" :accent="summary.rate_limit_rate > 1 ? 'var(--amber)' : 'var(--text)'" :sub="`${summary.rate_limit_count} events in 24h`" icon-name="alert" />
     </div>
 
     <Card>
@@ -74,7 +82,7 @@ const maxRequests = computed(() => endpointBreakdown[0].requests)
         <CardHeader title="Top endpoints" subtitle="By request volume in the selected window" />
         <table class="up__top">
           <tbody>
-            <tr v-for="(e, i) in endpointBreakdown" :key="e.endpoint" class="row" :style="{ borderTop: i === 0 ? 'none' : '1px solid var(--border-subtle)' }">
+            <tr v-for="(e, i) in breakdownData" :key="e.endpoint" class="row" :style="{ borderTop: i === 0 ? 'none' : '1px solid var(--border-subtle)' }">
               <td class="up__rank">{{ String(i + 1).padStart(2, '0') }}</td>
               <td class="up__endpoint">
                 <span class="mono" style="font-size: 12.5px; color: var(--text)">{{ e.endpoint }}</span>
@@ -92,14 +100,14 @@ const maxRequests = computed(() => endpointBreakdown[0].requests)
       <Card>
         <CardHeader title="Recent 429s" subtitle="Tune your client backoff using Retry-After" />
         <EmptyState
-          v-if="recent429s.length === 0"
+          v-if="rateLimitEvents.length === 0"
           title="Zero rate-limit events"
           body="Either you're under-using your tier or your backoff is solid. Either way, nice."
         >
           <template #icon><Icon name="checkCircle" :size="20" /></template>
         </EmptyState>
         <div v-else class="up__429s">
-          <div v-for="(e, i) in recent429s" :key="i" class="up__429-row" :style="{ borderTop: i === 0 ? 'none' : '1px solid var(--border-subtle)' }">
+          <div v-for="(e, i) in rateLimitEvents" :key="i" class="up__429-row" :style="{ borderTop: i === 0 ? 'none' : '1px solid var(--border-subtle)' }">
             <Badge variant="amber" size="sm" mono>429</Badge>
             <div class="up__429-mid">
               <div class="mono up__429-endpoint">{{ e.endpoint }}</div>

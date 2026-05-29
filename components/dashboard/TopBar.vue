@@ -18,7 +18,7 @@ const net = computed(() => NETWORKS.find((n) => n.id === props.network)!)
           <span class="mono tb__kbd">⌘K</span>
         </template>
       </Input>
-      <Button variant="default" size="md">
+      <Button variant="default" size="md" @click="navigateTo('/docs')">
         <template #leftIcon><Icon name="book" :size="14" /></template>
         Docs
       </Button>
