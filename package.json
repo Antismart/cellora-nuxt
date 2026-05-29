@@ -10,9 +10,10 @@
     "postinstall": "nuxt prepare"
   },
   "devDependencies": {
+    "@types/node": "^25.9.1",
     "nuxt": "^3.13.0",
+    "typescript": "^5.5.0",
     "vue": "^3.5.0",
-    "vue-router": "^4.4.0",
-    "typescript": "^5.5.0"
+    "vue-router": "^4.4.0"
   }
 }

@@ -10,13 +10,10 @@ export default defineNuxtConfig({
     public: { apiBaseUrl },
   },
   nitro: {
-    // Dev-only: keep the session cookie same-origin by proxying to the Rust API.
+    // Proxying is handled by server/routes/{admin,v1,graphql} which use
+    // h3 `proxyRequest` with explicit cookie forwarding. The old devProxy
+    // was silently dropping cookies → permanent 401 on /admin/me.
     // Prod is expected to do this via a reverse proxy / ingress (see backend-handoff §2).
-    devProxy: {
-      '/admin': { target: apiBaseUrl, changeOrigin: true },
-      '/v1': { target: apiBaseUrl, changeOrigin: true },
-      '/graphql': { target: apiBaseUrl, changeOrigin: true },
-    },
   },
   app: {
     head: {
