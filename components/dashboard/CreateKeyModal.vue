@@ -61,7 +61,6 @@ const valid = computed(() => label.value.trim().length > 0)
             <span class="ck__net-dot" :style="{ background: n.accent }" />
             <div>
               <div class="ck__net-name">{{ n.label }}</div>
-              <div class="mono ck__net-url">api.cellora.dev/v1/{{ n.id }}</div>
             </div>
           </button>
         </div>
@@ -107,5 +106,4 @@ const valid = computed(() => label.value.trim().length > 0)
 .ck__net--sel { background: var(--brand-tint-2); border-color: var(--brand-dim); }
 .ck__net-dot { width: 8px; height: 8px; border-radius: 99px; }
 .ck__net-name { font-size: 13px; font-weight: 500; }
-.ck__net-url { font-size: 11.5px; color: var(--text-dim); }
 </style>

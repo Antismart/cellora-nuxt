@@ -49,7 +49,6 @@ const getStatus = (id: string) => {
           <span class="st__net-name">{{ activeNet.label }}</span>
           <Badge variant="outline" size="sm" mono>us-east-1</Badge>
         </div>
-        <span class="mono st__net-url">https://api.cellora.dev/v1/{{ activeNet.id }}</span>
       </div>
 
       <div class="st__net-stats">
@@ -118,7 +117,6 @@ const getStatus = (id: string) => {
 .st__net-head-left { display: flex; align-items: center; gap: 10px; }
 .st__net-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); }
 .st__net-name { font-size: 14px; font-weight: 500; }
-.st__net-url { font-size: 12.5px; color: var(--text-muted); }
 .st__net-stats {
   display: grid; grid-template-columns: repeat(4, 1fr);
   border-bottom: 1px solid var(--border-subtle);
