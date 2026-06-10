@@ -146,7 +146,6 @@ const removeParam = (i: number) => params.value.splice(i, 1)
             <Badge variant="neutral" mono size="sm">GET</Badge>
             <span style="flex: 1">
               <Badge variant="outline" size="sm" mono :style="{ borderColor: activeNet.accent, color: activeNet.accent }">{{ activeNet.short }}</Badge>
-            <span class="mono" style="font-size: 13px; color: var(--text-muted)">https://api.cellora.dev</span>
               <span class="mono" style="font-size: 13px; color: var(--text); font-weight: 500">{{ endpoint }}</span>
             </span>
           </div>
