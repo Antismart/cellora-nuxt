@@ -9,7 +9,7 @@ const net = computed(() => NETWORKS.find((n) => n.id === props.network)!)
   <div class="tb nav-blur">
     <div class="tb__left">
       <span class="tb__title">{{ pageTitle }}</span>
-      <span class="micro tb__net">· {{ net.label }}</span>
+      <span class="micro tb__net" :style="{ color: net.accent }">· {{ net.label }}</span>
     </div>
     <div class="tb__right">
       <Input placeholder="Search keys, blocks, hashes…" :style="{ width: '320px' }">
@@ -37,7 +37,7 @@ const net = computed(() => NETWORKS.find((n) => n.id === props.network)!)
 }
 .tb__left { display: flex; align-items: center; gap: 14px; }
 .tb__title { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
-.tb__net { color: var(--text-dim); }
+.tb__net {}
 .tb__right { display: flex; align-items: center; gap: 10px; }
 .tb__kbd {
   font-size: 11px; padding: 1px 6px;

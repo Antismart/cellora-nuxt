@@ -7,11 +7,11 @@ const network = useNetwork()
 const tip = useLiveTip()
 const { displayUser: user } = useAuth()
 
-const { data: usageData } = useFetch('/admin/metrics/usage', { default: () => [] })
-const { data: activityData } = useFetch('/admin/metrics/activity', { default: () => [] })
-const { data: statusData } = useFetch('/admin/metrics/status')
-const { data: summaryData } = useFetch('/admin/metrics/summary', { default: () => ({ rest_p95_ms: 0, graphql_p95_ms: 0, error_rate: 0, vs_yesterday_percent: 0 }) })
-const { data: keysRes } = useFetch<{keys: any[]}>('/admin/keys', { default: () => ({keys: []}) })
+const { data: usageData } = useFetch('/admin/metrics/usage', { query: { network }, default: () => [] })
+const { data: activityData } = useFetch('/admin/metrics/activity', { query: { network }, default: () => [] })
+const { data: statusData } = useFetch('/admin/metrics/status', { query: { network } })
+const { data: summaryData } = useFetch('/admin/metrics/summary', { query: { network }, default: () => ({ rest_p95_ms: 0, graphql_p95_ms: 0, error_rate: 0, vs_yesterday_percent: 0 }) })
+const { data: keysRes } = useFetch<{keys: any[]}>('/admin/keys', { query: { network }, default: () => ({keys: []}) })
 
 const activeKeysCount = computed(() => keysRes.value?.keys?.filter(k => k.status === 'active').length || 0)
 const summary = computed(() => summaryData.value)
@@ -40,7 +40,7 @@ const stats = computed(() => statusData.value || { snapshot_age_seconds: 0 })
         <div class="ov__welcome-blurb">
           You're indexing <span class="mono" style="color: var(--text)">{{ fmtNum(totalReq) }}</span> requests in the last 24h across
           <span class="mono" style="color: var(--text)">{{ activeKeysCount }}</span> active keys. Indexer's healthy, lag is
-          <span class="mono" style="color: var(--brand)">{{ tip.lag_blocks }} blocks</span>.
+          <span class="mono" :style="{ color: 'var(--net-accent)' }">{{ tip.lag_blocks }} blocks</span>.
         </div>
       </div>
       <div class="ov__welcome-cta">
@@ -154,12 +154,12 @@ const stats = computed(() => statusData.value || { snapshot_age_seconds: 0 })
 .ov__welcome-blurb { margin-top: 8px; font-size: 14px; color: var(--text-muted); max-width: 540px; }
 .ov__welcome-cta { display: flex; gap: 8px; position: relative; }
 .ov__row-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.ov__row-link { font-size: 12.5px; color: var(--brand); display: inline-flex; align-items: center; gap: 4px; }
+.ov__row-link { font-size: 12.5px; color: var(--net-accent); display: inline-flex; align-items: center; gap: 4px; }
 .ov__tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .ov__cards { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
 .ov__live-dot {
   display: inline-block; width: 5px; height: 5px; border-radius: 99px;
-  background: var(--brand); margin-right: 5px;
+  background: var(--net-accent); margin-right: 5px;
 }
 .ov__act { width: 100%; border-collapse: collapse; margin-top: -4px; }
 .ov__act-method-cell { padding: 9px 8px 9px 0; width: 60px; }
@@ -167,7 +167,7 @@ const stats = computed(() => statusData.value || { snapshot_age_seconds: 0 })
 .ov__act-key { padding: 9px 8px; text-align: right; font-size: 11.5px; color: var(--text-dim); }
 .ov__act-status { padding: 9px 8px; width: 60px; text-align: right; font-size: 11.5px; }
 .ov__act-ms { padding: 9px 0 9px 8px; width: 50px; text-align: right; font-size: 11.5px; color: var(--text-dim); }
-.ov__open-usage { font-size: 12px; color: var(--brand); }
+.ov__open-usage { font-size: 12px; color: var(--net-accent); }
 .ov__total-row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 8px; }
 .ov__total { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; }
 .ov__metric-row { margin-top: 14px; display: flex; justify-content: space-between; }

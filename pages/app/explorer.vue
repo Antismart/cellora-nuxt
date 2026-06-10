@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { fmtNum, hl } from '~/utils/format'
-import { sample_graphql } from '~/utils/data'
+import { sample_graphql, NETWORKS } from '~/utils/data'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
+
+const network = useNetwork()
+const activeNet = computed(() => NETWORKS.find(n => n.id === network.value)!)
 
 const tip = useLiveTip()
 
@@ -142,7 +145,8 @@ const removeParam = (i: number) => params.value.splice(i, 1)
           <div class="ex__req-head">
             <Badge variant="neutral" mono size="sm">GET</Badge>
             <span style="flex: 1">
-              <span class="mono" style="font-size: 13px; color: var(--text-muted)">https://api.cellora.dev</span>
+              <Badge variant="outline" size="sm" mono :style="{ borderColor: activeNet.accent, color: activeNet.accent }">{{ activeNet.short }}</Badge>
+            <span class="mono" style="font-size: 13px; color: var(--text-muted)">https://api.cellora.dev</span>
               <span class="mono" style="font-size: 13px; color: var(--text); font-weight: 500">{{ endpoint }}</span>
             </span>
           </div>
@@ -245,7 +249,7 @@ const removeParam = (i: number) => params.value.splice(i, 1)
 .ex__list-item--active {
   background: var(--surface-2);
   border-color: var(--border);
-  border-left: 2px solid var(--brand);
+  border-left: 2px solid var(--net-accent);
   padding-left: 9px;
 }
 .ex__list-method { font-size: 9.5px; color: var(--text-dim); }

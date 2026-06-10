@@ -4,11 +4,13 @@ import { tiers } from '~/utils/data'
 
 definePageMeta({ layout: 'dashboard', middleware: 'auth' })
 
+const network = useNetwork()
+
 const range = ref<'24h' | '7d' | '30d'>('24h')
 const surface = ref<'all' | 'rest' | 'graphql'>('all')
 const keyFilter = ref<string>('all')
 
-const { data: usageData } = useFetch('/admin/metrics/usage', { default: () => [] })
+const { data: usageData } = useFetch('/admin/metrics/usage', { query: { network }, default: () => [] })
 const data = computed(() => usageData.value)
 const total = computed(() => data.value.reduce((s, p) => s + p.rest + p.graphql, 0))
 const ceiling = computed(() => tiers.pro.rest_burst * 60)
@@ -19,20 +21,20 @@ const rangeTabs = [
   { value: '30d', label: '30d' },
 ]
 
-const { data: keysRes } = useFetch<{keys: any[]}>('/admin/keys', { default: () => ({keys: []}) })
+const { data: keysRes } = useFetch<{keys: any[]}>('/admin/keys', { query: { network }, default: () => ({keys: []}) })
 const keyOptions = computed(() => [
   { value: 'all', label: 'All keys' },
   ...(keysRes.value?.keys || []).map((k) => ({ value: k.id, label: k.label ?? 'unlabeled' })),
 ])
 
 // These are now wired to the backend
-const { data: summaryData } = useFetch('/admin/metrics/summary', { default: () => ({ rest_p95_ms: 0, graphql_p95_ms: 0, rate_limit_rate: 0, rate_limit_count: 0 }) })
+const { data: summaryData } = useFetch('/admin/metrics/summary', { query: { network }, default: () => ({ rest_p95_ms: 0, graphql_p95_ms: 0, rate_limit_rate: 0, rate_limit_count: 0 }) })
 const summary = computed(() => summaryData.value)
 
-const { data: breakdownDataRef } = useFetch('/admin/metrics/endpoints', { default: () => [] })
+const { data: breakdownDataRef } = useFetch('/admin/metrics/endpoints', { query: { network }, default: () => [] })
 const breakdownData = computed(() => breakdownDataRef.value)
 
-const { data: rateLimitEventsRef } = useFetch('/admin/metrics/rate-limits', { default: () => [] })
+const { data: rateLimitEventsRef } = useFetch('/admin/metrics/rate-limits', { query: { network }, default: () => [] })
 const rateLimitEvents = computed(() => rateLimitEventsRef.value)
 
 const surfaceOptions = [
@@ -136,7 +138,7 @@ const maxRequests = computed(() => breakdownData.value.length ? breakdownData.va
 .up__endpoint { padding: 10px 8px; }
 .up__bar-cell { padding: 10px 8px; width: 30%; }
 .up__bar { height: 6px; background: var(--bg-elev); border-radius: 99px; overflow: hidden; }
-.up__bar-fill { height: 100%; background: linear-gradient(90deg, var(--brand) 0%, var(--brand-dim) 100%); }
+.up__bar-fill { height: 100%; background: var(--net-accent); }
 .up__count {
   padding: 10px 8px; text-align: right;
   font-family: var(--font-mono); font-size: 12.5px;

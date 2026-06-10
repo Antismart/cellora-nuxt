@@ -69,7 +69,7 @@ const signOut = async () => {
       </div>
     </aside>
 
-    <div class="shell__main">
+    <div class="shell__main" :style="{ '--net-accent': activeNet.accent, '--net-tint': activeNet.tint }">
       <TopBar :page-title="pageTitle" :network="network" />
       <main class="shell__content">
         <div class="shell__content-inner">
@@ -138,7 +138,7 @@ const signOut = async () => {
 }
 .shell__navlink-tail { margin-left: auto; color: var(--text-dim); }
 .shell__foot { padding: 10px; border-top: 1px solid var(--border-subtle); }
-.shell__main { display: flex; flex-direction: column; min-width: 0; }
+.shell__main { display: flex; flex-direction: column; min-width: 0; border-top: 2px solid var(--net-accent); }
 .shell__content { flex: 1; padding: 28px 36px 60px; overflow: auto; }
 .shell__content-inner { max-width: 1240px; margin: 0 auto; }
 </style>
