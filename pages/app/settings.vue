@@ -8,7 +8,7 @@ const { displayUser: user } = useAuth()
   <div class="st">
     <div class="st__header">
       <h2>Account Settings</h2>
-      <p class="st__subtitle">Manage your profile and subscription tier.</p>
+      <p class="st__subtitle">Manage your profile.</p>
     </div>
 
     <Card>
@@ -25,22 +25,6 @@ const { displayUser: user } = useAuth()
       </div>
     </Card>
 
-    <Card>
-      <CardHeader title="Subscription" subtitle="Current plan and billing" />
-      <div class="st__plan-row">
-        <div class="st__info">
-          <div class="st__label">Current Tier</div>
-          <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
-            <Badge variant="brand" size="sm" mono>{{ user.plan }}</Badge>
-            <span v-if="user.org" class="mono st__org">{{ user.org }}</span>
-          </div>
-        </div>
-        <Button variant="outline" disabled>Upgrade Plan</Button>
-      </div>
-      <p class="st__plan-desc">
-        Billing management and team organization features are currently under development.
-      </p>
-    </Card>
   </div>
 </template>
 
@@ -61,6 +45,4 @@ const { displayUser: user } = useAuth()
 .st__value { font-size: 14px; color: var(--text); }
 .st__org { font-size: 12px; color: var(--text-muted); }
 
-.st__plan-row { display: flex; align-items: center; justify-content: space-between; padding: 16px; }
-.st__plan-desc { padding: 0 16px 16px; margin: 0; font-size: 13px; color: var(--text-muted); }
 </style>

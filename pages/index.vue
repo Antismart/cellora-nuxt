@@ -13,7 +13,7 @@ useHead({
     <ValueProps />
     <Features />
     <LiveExplorer />
-    <Pricing />
+    <!-- <Pricing /> -->
     <FinalCTA @sign-in="goSignIn" />
     <SiteFooter />
   </div>

@@ -2,7 +2,7 @@
 const today = new Date().toISOString().slice(0, 10)
 
 const groups = [
-  { t: 'Product', l: ['Features', 'Pricing', 'Live explorer', 'Status', 'Changelog'] },
+  { t: 'Product', l: ['Features', 'Live explorer', 'Status', 'Changelog'] },
   { t: 'Developers', l: ['Docs', 'OpenAPI spec', 'GraphQL schema', 'SDKs', 'GitHub'] },
   { t: 'Company', l: ['About', 'Blog', 'Careers', 'Contact'] },
   { t: 'Legal', l: ['License (FSL-1.1-ALv2)', 'Privacy', 'Terms', 'Security'] },
