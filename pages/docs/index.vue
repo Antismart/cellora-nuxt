@@ -7,7 +7,7 @@ const e = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 // ── Active-section tracking ───────────────────────────────────────────────────
-const activeSection = ref('why')
+const activeSection = ref('quickstart')
 let _observer: IntersectionObserver | null = null
 
 onMounted(() => {
@@ -197,7 +197,6 @@ curl -s \\
 `# Requires TWO running services:
 #   - CKB full node on port 8114
 #   - CKB indexer on port 8116 (separate binary, separate sync process)
-#   see: https://github.com/nervosnetwork/ckb-indexer
 
 curl -s http://localhost:8116 \\
   -H 'Content-Type: application/json' \\
@@ -228,8 +227,7 @@ curl -s \\
 
   // ── Migration: JavaScript ─────────────────────────────────────────────────
   nodeJS:
-`// Requires: CKB node on :8114 + CKB indexer on :8116
-
+`// Before: CKB node on :8114 + CKB indexer on :8116
 const NODE    = 'http://localhost:8114'
 const INDEXER = 'http://localhost:8116'
 
@@ -244,26 +242,20 @@ const rpc = async (url, method, params = []) => {
   return result
 }
 
-// Tip comes back as a hex string — must convert to decimal
+// Tip comes back as a hex string — must convert
 const tip = parseInt(await rpc(NODE, 'get_tip_block_number'), 16)
 
 // Block number must be hex-encoded before sending
 const block = await rpc(NODE, 'get_block_by_number', ['0xf4240'])
 
-// Live cells require the indexer RPC at a different port,
-// a different request shape, and page size expressed as hex
-const { objects: cells, last_cursor } = await rpc(INDEXER, 'get_cells', [
-  {
-    script: { code_hash: '0x9bd7...', hash_type: 'type', args: '0x...' },
-    script_type: 'lock',
-  },
-  'asc',
-  '0x64',
+// Cells require the indexer at a different port + hex page size
+const { objects: cells } = await rpc(INDEXER, 'get_cells', [
+  { script: { code_hash: '0x9bd7...', hash_type: 'type', args: '0x...' }, script_type: 'lock' },
+  'asc', '0x64',
 ])`,
 
   celloraJS:
-`// Requires: an API key from cellora-nuxt.vercel.app
-
+`// After: just an API key
 const BASE = 'https://api.cellora.dev'
 const KEY  = process.env.CELLORA_KEY
 
@@ -272,20 +264,20 @@ const get = (path) =>
     headers: { Authorization: \`Bearer \${KEY}\` },
   }).then((r) => r.json())
 
-// Tip — plain decimal integer, no conversion
+// Decimal integer, no conversion
 const { node_tip: tip } = await get('/v1/stats')
 
-// Block — decimal number, no encoding
+// Decimal number in the URL, no encoding
 const block = await get('/v1/blocks/1000000')
 
-// Live cells — no separate service, no RPC envelope
+// Same endpoint as everything else
 const { data: cells, next_cursor } = await get(
   '/v1/cells?lock_hash=0x...&is_live=true&limit=100',
 )`,
 
   // ── Migration: Python ─────────────────────────────────────────────────────
   nodePython:
-`# Requires: CKB node on :8114 + CKB indexer on :8116
+`# Before: CKB node on :8114 + CKB indexer on :8116
 import requests
 
 NODE    = "http://localhost:8114"
@@ -307,18 +299,15 @@ tip = int(rpc(NODE, "get_tip_block_number"), 16)
 # Block number must be hex-encoded
 block = rpc(NODE, "get_block_by_number", [hex(1_000_000)])
 
-# Live cells — indexer at a different port, different RPC shape
+# Cells require the indexer at a different port
 result = rpc(INDEXER, "get_cells", [
-    {
-        "script": {"code_hash": "0x9bd7...", "hash_type": "type", "args": "0x..."},
-        "script_type": "lock",
-    },
+    {"script": {"code_hash": "0x9bd7...", "hash_type": "type", "args": "0x..."}, "script_type": "lock"},
     "asc", "0x64",
 ])
 cells = result["objects"]`,
 
   celloraPython:
-`# Requires: an API key from cellora-nuxt.vercel.app
+`# After: just an API key
 import requests, os
 
 BASE    = "https://api.cellora.dev"
@@ -327,19 +316,18 @@ HEADERS = {"Authorization": f"Bearer {os.environ['CELLORA_KEY']}"}
 def get(path):
     return requests.get(f"{BASE}{path}", headers=HEADERS).json()
 
-# Tip — plain decimal
+# Plain decimal
 tip = get("/v1/stats")["node_tip"]
 
-# Block — decimal number, no encoding needed
+# Decimal number, no encoding
 block = get("/v1/blocks/1000000")
 
-# Live cells — no indexer to run, no RPC wrapper
+# No separate indexer service
 result = get("/v1/cells?lock_hash=0x...&is_live=true&limit=100")
 cells, cursor = result["data"], result["next_cursor"]`,
 }
 
-// Pre-rendered HTML for CodeBlock — escaped first, then highlighted
-// JavaScript and Python use plain escaping (no highlighter available)
+// Pre-rendered HTML for CodeBlock
 const C = {
   exportKey:      hl.bash(e(RAW.exportKey)),
   firstRequest:   hl.bash(e(RAW.firstRequest)),
@@ -358,7 +346,6 @@ const C = {
   gqlCells:       hl.bash(e(RAW.gqlCells)),
   pagination:     hl.bash(e(RAW.pagination)),
   errorResp:      hl.json(e(RAW.errorResp)),
-  // Migration
   nodeTip:        hl.bash(e(RAW.nodeTip)),
   celloraTip:     hl.bash(e(RAW.celloraTip)),
   nodeBlock:      hl.bash(e(RAW.nodeBlock)),
@@ -379,13 +366,13 @@ const C = {
     <nav class="docs__nav">
       <div class="docs__nav-group">
         <div class="micro docs__nav-label">Getting started</div>
-        <a href="#why"            class="docs__nav-link" :class="{ 'docs__nav-link--active': activeSection === 'why' }">Why Cellora</a>
         <a href="#quickstart"     class="docs__nav-link" :class="{ 'docs__nav-link--active': activeSection === 'quickstart' }">Quickstart</a>
+        <a href="#the-switch"     class="docs__nav-link" :class="{ 'docs__nav-link--active': activeSection === 'the-switch' }">The switch</a>
         <a href="#authentication" class="docs__nav-link" :class="{ 'docs__nav-link--active': activeSection === 'authentication' }">Authentication</a>
       </div>
       <div class="docs__nav-group">
-        <div class="micro docs__nav-label">Migration</div>
-        <a href="#migration"        class="docs__nav-link" :class="{ 'docs__nav-link--active': activeSection === 'migration' }">Replacing your node</a>
+        <div class="micro docs__nav-label">Code examples</div>
+        <a href="#migration"        class="docs__nav-link" :class="{ 'docs__nav-link--active': activeSection === 'migration' }">curl</a>
         <a href="#migration-js"     class="docs__nav-link" :class="{ 'docs__nav-link--active': activeSection === 'migration-js' }">JavaScript</a>
         <a href="#migration-python" class="docs__nav-link" :class="{ 'docs__nav-link--active': activeSection === 'migration-python' }">Python</a>
       </div>
@@ -419,14 +406,15 @@ const C = {
           <Badge variant="brand" mono dot="pulse">live</Badge>
           <span class="mono" style="font-size: 12px; color: var(--text-dim)">REST + GraphQL · Mainnet + Pizza Testnet</span>
         </div>
-        <h1 class="docs__title">API Reference</h1>
+        <h1 class="docs__title">Your API key is your node</h1>
         <p class="docs__subtitle">
-          Everything you need to query indexed CKB data. No node to run, no sync to wait for, no infrastructure to manage.
+          You used to run a CKB node and wait days for it to sync. With Cellora, you get an API key
+          and start querying in minutes. This page shows you exactly what changes in your code.
         </p>
         <div style="display: flex; gap: 10px; margin-top: 20px;">
           <Button variant="primary" size="md" @click="navigateTo('/app/explorer')">
             <template #leftIcon><Icon name="terminal" :size="14" /></template>
-            Try it in the Explorer
+            Try in the Explorer
           </Button>
           <Button variant="outline" size="md" @click="navigateTo('/app/keys')">
             <template #leftIcon><Icon name="key" :size="14" /></template>
@@ -435,65 +423,22 @@ const C = {
         </div>
       </div>
 
-      <!-- ── Why Cellora ──────────────────────────────────────────────────── -->
-      <section id="why" data-doc class="docs__section">
-        <h2 class="docs__h2">Why Cellora</h2>
-        <p class="docs__body">
-          CKB's native JSON-RPC is a low-level interface built for node operators, not application developers.
-          Getting useful data out of it means running a fully-synced node, a separate indexer service alongside it,
-          and keeping both operational. That is weeks of setup before you write a single line of your application.
-        </p>
-        <p class="docs__body">
-          Cellora indexes the chain for you and exposes the result over a clean REST and GraphQL API.
-          You skip straight to building.
-        </p>
-
-        <div class="docs__compare">
-          <div class="docs__compare-col docs__compare-col--before">
-            <div class="docs__compare-head">
-              <Badge variant="amber" mono size="sm">Running your own node</Badge>
-            </div>
-            <ul class="docs__compare-list">
-              <li>100 GB+ of disk space, growing every day</li>
-              <li>2 to 4 days to sync from genesis before your first query</li>
-              <li>Maintain the node: upgrades, monitoring, crash recovery</li>
-              <li>Run a second indexer service for cell queries (separate binary, separate port)</li>
-              <li>Write and maintain your own pagination, filtering, and aggregation</li>
-              <li>JSON-RPC only — hex-encoded numbers, no standard REST or GraphQL</li>
-              <li>Separate infrastructure for Mainnet vs Testnet</li>
-            </ul>
-          </div>
-          <div class="docs__compare-col docs__compare-col--after">
-            <div class="docs__compare-head">
-              <Badge variant="brand" mono size="sm">Cellora</Badge>
-            </div>
-            <ul class="docs__compare-list">
-              <li>Zero disk space. Zero infrastructure</li>
-              <li>Data available immediately — no sync step</li>
-              <li>Fully managed. No ops burden whatsoever</li>
-              <li>Cell queries by lock hash and type hash, built in, one endpoint</li>
-              <li>Cursor-based pagination and live vs consumed filtering, built in</li>
-              <li>REST and GraphQL, decimal numbers, works with any HTTP client</li>
-              <li>Mainnet and Pizza Testnet on the same API, switched with one param</li>
-            </ul>
-          </div>
-        </div>
-      </section>
-
       <!-- ── Quickstart ───────────────────────────────────────────────────── -->
       <section id="quickstart" data-doc class="docs__section">
         <h2 class="docs__h2">Quickstart</h2>
-        <p class="docs__body">Three steps from zero to your first live query.</p>
+        <p class="docs__body">
+          No node to run. No indexer to sync. No disk space to provision.
+          Sign up, get a key, and you are querying live CKB data in three steps.
+        </p>
 
         <div class="docs__steps">
           <div class="docs__step">
             <div class="docs__step-num">1</div>
             <div class="docs__step-body">
-              <div class="docs__step-title">Create an API key</div>
+              <div class="docs__step-title">Get your API key</div>
               <p class="docs__step-desc">
-                Sign in at the <a class="docs__link" href="/sign-in">dashboard</a>, navigate to <strong>API Keys</strong>,
-                and click <strong>Create key</strong>. Choose a tier and network, then copy the full secret immediately.
-                It is shown exactly once and cannot be recovered.
+                Sign in at the <a class="docs__link" href="/sign-in">dashboard</a>, go to <strong>API Keys</strong>,
+                and click <strong>Create key</strong>. Copy the full secret immediately — it is shown exactly once.
               </p>
             </div>
           </div>
@@ -501,8 +446,7 @@ const C = {
           <div class="docs__step">
             <div class="docs__step-num">2</div>
             <div class="docs__step-body">
-              <div class="docs__step-title">Export your key</div>
-              <p class="docs__step-desc">Save it as an environment variable so you can reuse it across requests.</p>
+              <div class="docs__step-title">Export it as an environment variable</div>
               <UiCodeBlock :html="C.exportKey" :copy-value="RAW.exportKey" language="bash" />
             </div>
           </div>
@@ -511,10 +455,89 @@ const C = {
             <div class="docs__step-num">3</div>
             <div class="docs__step-body">
               <div class="docs__step-title">Make your first request</div>
-              <p class="docs__step-desc">Query the latest indexed block. You should get a response in under 100 ms.</p>
+              <p class="docs__step-desc">That's it. No syncing, no setup, no ports to open.</p>
               <UiCodeBlock :html="C.firstRequest" :copy-value="RAW.firstRequest" language="bash" />
             </div>
           </div>
+        </div>
+      </section>
+
+      <!-- ── The switch ─────────────────────────────────────────────────────── -->
+      <section id="the-switch" data-doc class="docs__section">
+        <h2 class="docs__h2">The switch</h2>
+        <p class="docs__body">
+          If you have existing code that talks to a local CKB node, this is everything that changes.
+          Nothing else in your application needs to move.
+        </p>
+
+        <div class="docs__switch-table-wrap">
+          <table class="docs__switch-table">
+            <thead>
+              <tr>
+                <th>What you had with a local node</th>
+                <th>What you do with Cellora</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <span class="mono docs__switch-before">http://localhost:8114</span>
+                  <span class="docs__switch-note">CKB full node, weeks to sync, 100 GB disk</span>
+                </td>
+                <td>
+                  <span class="mono docs__switch-after">https://api.cellora.dev</span>
+                  <span class="docs__switch-note">Already synced, nothing to run</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="mono docs__switch-before">http://localhost:8116</span>
+                  <span class="docs__switch-note">CKB indexer — a second binary to run and keep synced</span>
+                </td>
+                <td>
+                  <span class="mono docs__switch-after">https://api.cellora.dev</span>
+                  <span class="docs__switch-note">Same base URL — cell queries are built in</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="mono docs__switch-before">No auth header</span>
+                  <span class="docs__switch-note">Requests worked on localhost without authentication</span>
+                </td>
+                <td>
+                  <span class="mono docs__switch-after">Authorization: Bearer $CELLORA_KEY</span>
+                  <span class="docs__switch-note">Add this one header to every request</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="mono docs__switch-before">"0xf4240"</span>
+                  <span class="docs__switch-note">Block numbers hex-encoded in JSON-RPC params</span>
+                </td>
+                <td>
+                  <span class="mono docs__switch-after">/v1/blocks/1000000</span>
+                  <span class="docs__switch-note">Decimal integers in the URL path — no conversion</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <span class="mono docs__switch-before">POST with JSON-RPC envelope</span>
+                  <span class="docs__switch-note">Every call wrapped in <span class="mono">{"jsonrpc":"2.0","method":"..."}</span></span>
+                </td>
+                <td>
+                  <span class="mono docs__switch-after">GET with query params</span>
+                  <span class="docs__switch-note">Standard REST — works with any HTTP client, no wrapper needed</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="docs__callout" style="margin-top: 0;">
+          <strong>Testnet vs Mainnet</strong>
+          You do not need different base URLs for different networks. Your key is scoped to one network
+          at creation time. Mainnet keys hit the mainnet chain. Pizza Testnet keys hit the testnet chain.
+          Same API, same endpoints, same code — just a different key.
         </div>
       </section>
 
@@ -522,37 +545,30 @@ const C = {
       <section id="authentication" data-doc class="docs__section">
         <h2 class="docs__h2">Authentication</h2>
         <p class="docs__body">
-          All data endpoints require a Bearer token in the <span class="mono docs__inline-code">Authorization</span> header.
-          Your key was issued from the <a class="docs__link" href="/app/keys">API Keys</a> page.
+          Send your key as a Bearer token in the <span class="mono docs__inline-code">Authorization</span> header
+          on every request. That is the only change you need to make to your HTTP client setup.
         </p>
         <UiCodeBlock :html="C.authHeader" :copy-value="RAW.authHeader" language="bash" filename="request header" />
 
         <div class="docs__callout">
-          <strong>Public paths (no auth required)</strong>
+          <strong>Public paths (no key required)</strong>
           <ul class="docs__callout-list">
             <li><span class="mono">GET /v1/health</span> and <span class="mono">GET /v1/health/ready</span></li>
             <li><span class="mono">GET /v1/openapi.json</span></li>
           </ul>
           Everything else returns <span class="mono">401 unauthorized</span> without a valid token.
-          Unauthenticated requests to unknown routes also return 401, not 404, to avoid leaking the route surface.
         </div>
       </section>
 
-      <!-- ── Migration ────────────────────────────────────────────────────── -->
+      <!-- ── Code examples: curl ─────────────────────────────────────────── -->
       <section id="migration" data-doc class="docs__section">
-        <h2 class="docs__h2">Replacing your local node</h2>
+        <h2 class="docs__h2">Code examples</h2>
         <p class="docs__body">
-          If you have been querying a local CKB node directly, this section shows you the exact Cellora
-          equivalent for each operation. The pattern is consistent: replace the JSON-RPC call with a
-          standard HTTP GET, drop the hex encoding, and remove the dependency on the local indexer service.
+          The following examples show the exact CKB node or indexer call alongside its Cellora equivalent,
+          for the three operations developers reach for most often.
         </p>
 
-        <!-- Check chain tip -->
         <h3 class="docs__h3">Check the chain tip</h3>
-        <p class="docs__body">
-          The CKB RPC returns the tip as a hex string. Cellora returns it as a plain decimal integer
-          alongside the indexer lag, so you know not just the tip but how fresh your data is.
-        </p>
         <div class="docs__side-by-side">
           <div>
             <div class="docs__side-label"><Badge variant="amber" mono size="sm">Before</Badge> CKB JSON-RPC</div>
@@ -564,12 +580,7 @@ const C = {
           </div>
         </div>
 
-        <!-- Get a block -->
         <h3 class="docs__h3">Get a block by number</h3>
-        <p class="docs__body">
-          The CKB RPC requires the block number to be hex-encoded in the request payload.
-          Cellora accepts the decimal number directly in the URL path.
-        </p>
         <div class="docs__side-by-side">
           <div>
             <div class="docs__side-label"><Badge variant="amber" mono size="sm">Before</Badge> CKB JSON-RPC</div>
@@ -581,20 +592,15 @@ const C = {
           </div>
         </div>
 
-        <!-- Query live cells -->
         <h3 class="docs__h3">Query live cells for a lock script</h3>
         <p class="docs__body">
-          This is the operation that causes the most friction with a self-hosted setup.
-          The CKB indexer is a separate binary you run alongside the node — it has its own sync process,
-          its own port, and its own RPC format. If the indexer falls behind or crashes, your cell queries break
-          independently of the node.
-        </p>
-        <p class="docs__body">
-          With Cellora, cell queries are a single GET request to the same API you use for everything else.
+          The CKB indexer is a separate binary that runs alongside the node on its own port.
+          If it falls behind or crashes, your cell queries break independently of the node.
+          With Cellora, cell queries are a single GET on the same base URL as everything else.
         </p>
         <div class="docs__side-by-side">
           <div>
-            <div class="docs__side-label"><Badge variant="amber" mono size="sm">Before</Badge> CKB indexer RPC</div>
+            <div class="docs__side-label"><Badge variant="amber" mono size="sm">Before</Badge> CKB indexer RPC · port 8116</div>
             <UiCodeBlock :html="C.nodeCells" :copy-value="RAW.nodeCells" language="bash" />
           </div>
           <div>
@@ -604,13 +610,12 @@ const C = {
         </div>
       </section>
 
-      <!-- ── Migration: JavaScript ─────────────────────────────────────────── -->
+      <!-- ── Code examples: JavaScript ──────────────────────────────────── -->
       <section id="migration-js" data-doc class="docs__section">
         <h3 class="docs__h3">JavaScript / TypeScript</h3>
         <p class="docs__body">
-          The before example below is the pattern most CKB JavaScript projects use today — a hand-rolled
-          JSON-RPC helper, two service URLs, and manual hex conversion at every boundary.
-          The after example is what replacing it with Cellora looks like.
+          Replace the hand-rolled JSON-RPC helper and two service URLs with a single
+          <span class="mono docs__inline-code">get()</span> function that attaches your key.
         </p>
         <div class="docs__side-by-side">
           <div>
@@ -623,13 +628,13 @@ const C = {
           </div>
         </div>
         <div class="docs__callout" style="margin-top: 16px;">
-          The <span class="mono">get()</span> helper above is all you need as a starting point.
-          For production use, wrap it with your preferred HTTP client (axios, ky, got) and add
-          retry logic that respects the <span class="mono">Retry-After</span> header on 429 responses.
+          The <span class="mono">get()</span> helper above is all you need to get started.
+          For production, wrap it with your preferred HTTP client and add retry logic that respects
+          the <span class="mono">Retry-After</span> header on 429 responses.
         </div>
       </section>
 
-      <!-- ── Migration: Python ─────────────────────────────────────────────── -->
+      <!-- ── Code examples: Python ──────────────────────────────────────── -->
       <section id="migration-python" data-doc class="docs__section">
         <h3 class="docs__h3">Python</h3>
         <div class="docs__side-by-side">
@@ -644,15 +649,15 @@ const C = {
         </div>
         <div class="docs__callout" style="margin-top: 16px;">
           For async Python, swap <span class="mono">requests</span> for <span class="mono">httpx</span> and
-          await the calls. The Cellora API surface does not change — only the HTTP client does.
+          await the calls. The Cellora API surface does not change.
         </div>
       </section>
 
       <!-- ── REST: Health ─────────────────────────────────────────────────── -->
       <section id="health" data-doc class="docs__section">
-        <h2 class="docs__h2">REST API</h2>
+        <h2 class="docs__h2">REST API reference</h2>
         <p class="docs__body">
-          The base URL for all REST endpoints is <span class="mono docs__inline-code">https://api.cellora.dev</span>.
+          Base URL: <span class="mono docs__inline-code">https://api.cellora.dev</span>.
           All responses are JSON. Hashes are <span class="mono">0x</span>-prefixed lowercase hex throughout.
         </p>
 
@@ -684,7 +689,7 @@ const C = {
         <div class="docs__endpoint-head">
           <Badge variant="neutral" mono>GET</Badge>
           <span class="mono docs__endpoint-path">/v1/blocks/{number}</span>
-          <span class="docs__endpoint-desc">A specific block by its height.</span>
+          <span class="docs__endpoint-desc">A specific block by its height (decimal integer).</span>
         </div>
         <UiCodeBlock :html="C.blockNum" :copy-value="RAW.blockNum" language="bash" />
 
@@ -695,7 +700,7 @@ const C = {
               <tr>
                 <td class="mono">number</td>
                 <td class="mono">integer</td>
-                <td>Non-negative decimal integer. Returns 400 for non-numeric, negative, or overflowing values.</td>
+                <td>Non-negative decimal integer. Returns 400 for non-numeric or negative values.</td>
               </tr>
             </tbody>
           </table>
@@ -752,16 +757,6 @@ const C = {
 
         <UiCodeBlock :html="C.cellsQuery" :copy-value="RAW.cellsQuery" language="bash" />
         <UiCodeBlock :html="C.cellsResp" :copy-value="RAW.cellsResp" language="json" filename="response" />
-
-        <div class="docs__callout">
-          <strong>Common validation errors</strong>
-          <ul class="docs__callout-list">
-            <li>Supplying both or neither of <span class="mono">lock_hash</span> / <span class="mono">type_hash</span>: 400</li>
-            <li>Hash not exactly 64 hex chars after the prefix: 400</li>
-            <li><span class="mono">limit</span> of 0 or above 500: 400</li>
-            <li>Malformed or tampered <span class="mono">cursor</span>: 400 <span class="mono">invalid_cursor</span></li>
-          </ul>
-        </div>
       </section>
 
       <!-- ── REST: Stats ──────────────────────────────────────────────────── -->
@@ -781,7 +776,7 @@ const C = {
               <tr><td class="mono">indexer_tip</td><td>Highest block Cellora has fully indexed.</td></tr>
               <tr><td class="mono">node_tip</td><td>Current head of the CKB chain as seen by the node.</td></tr>
               <tr><td class="mono">lag_blocks</td><td>Difference between node tip and indexer tip. A lag of 0 to 5 is normal.</td></tr>
-              <tr><td class="mono">is_stale</td><td><span class="mono">true</span> when the snapshot has not refreshed in the last 5 seconds. Indicates a connectivity issue between the API and Postgres or the CKB node.</td></tr>
+              <tr><td class="mono">is_stale</td><td><span class="mono">true</span> when the snapshot has not refreshed in the last 5 seconds. Indicates a connectivity issue.</td></tr>
             </tbody>
           </table>
         </div>
@@ -795,11 +790,6 @@ const C = {
           Auth is identical — send your Bearer token in the <span class="mono">Authorization</span> header.
           The rate limit bucket is separate from REST, so GraphQL and REST do not consume each other's quota.
         </p>
-        <p class="docs__body">
-          GraphQL errors use the standard protocol shape: a top-level <span class="mono">errors</span> array on a
-          <span class="mono">200 OK</span> response. Auth failures (401) and rate limit refusals (429) still return
-          their HTTP status codes with the REST error envelope — those checks happen before the GraphQL handler runs.
-        </p>
         <UiCodeBlock :html="C.gqlBasic" :copy-value="RAW.gqlBasic" language="bash" filename="quick example" />
       </section>
 
@@ -811,8 +801,7 @@ const C = {
       <section id="gql-examples" data-doc class="docs__section">
         <h3 class="docs__h3">Querying cells with variables</h3>
         <p class="docs__body">
-          Using variables instead of inline literals keeps queries reusable and prevents injection.
-          Pass them as a separate <span class="mono">variables</span> object alongside the <span class="mono">query</span> field.
+          Use variables instead of inline literals to keep queries reusable and prevent injection.
         </p>
         <UiCodeBlock :html="C.gqlCells" :copy-value="RAW.gqlCells" language="bash" />
       </section>
@@ -902,8 +891,7 @@ const C = {
         <h3 class="docs__h3">The x-request-id header</h3>
         <p class="docs__body">
           Every response carries an <span class="mono docs__inline-code">x-request-id</span> header with a unique UUID.
-          If you hit an unexpected error, include this value in your bug report.
-          It lets the team find the exact request in server logs.
+          If you hit an unexpected error, include this value in your bug report so the team can find the exact request in server logs.
         </p>
       </section>
 
@@ -995,27 +983,70 @@ const C = {
   color: var(--text);
 }
 
-/* ── Comparison ──────────────────────────────────────────────────────────── */
-.docs__compare {
+/* ── The switch table ────────────────────────────────────────────────────── */
+.docs__switch-table-wrap {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-3);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.docs__switch-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.docs__switch-table thead tr {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 20px;
 }
-.docs__compare-col {
-  border-radius: var(--radius-3);
-  border: 1px solid var(--border-subtle);
-  padding: 20px;
+.docs__switch-table th {
+  padding: 10px 16px;
+  font-size: 11px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  font-family: var(--font-mono);
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
 }
-.docs__compare-col--before { background: var(--bg-elev); }
-.docs__compare-col--after  { background: var(--surface); border-color: var(--net-accent); }
-.docs__compare-head { margin-bottom: 14px; }
-.docs__compare-list {
-  margin: 0; padding: 0 0 0 16px;
-  display: flex; flex-direction: column; gap: 8px;
-  font-size: 13px; color: var(--text-muted); line-height: 1.5;
+.docs__switch-table th:first-child {
+  background: var(--bg-elev);
+  color: var(--amber);
+  border-right: 1px solid var(--border-subtle);
 }
-.docs__compare-col--after .docs__compare-list { color: var(--text); }
+.docs__switch-table th:last-child {
+  background: var(--bg-elev);
+  color: var(--net-accent);
+}
+.docs__switch-table tbody tr {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.docs__switch-table tbody tr:last-child { border-bottom: none; }
+.docs__switch-table td {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  vertical-align: top;
+}
+.docs__switch-table td:first-child {
+  border-right: 1px solid var(--border-subtle);
+  background: var(--bg-base);
+}
+.docs__switch-table td:last-child {
+  background: var(--surface);
+}
+.docs__switch-before {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--amber);
+}
+.docs__switch-after {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--net-accent);
+}
+.docs__switch-note {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.4;
+}
 
 /* ── Side-by-side code blocks ────────────────────────────────────────────── */
 .docs__side-by-side {
