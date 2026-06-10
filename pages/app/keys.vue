@@ -15,7 +15,8 @@ const errorMsg = ref<string | null>(null)
 const createOpen = ref(false)
 const revealKey = ref<(ApiKey & { full: string }) | null>(null)
 const revokeTarget = ref<ApiKey | null>(null)
-const filter = ref<'all' | 'mainnet' | 'testnet'>('all')
+const filter = ref<'all' | 'mainnet' | 'testnet'>(network.value)
+watch(network, (v) => { filter.value = v })
 
 const filtered = computed(() =>
   keys.value.filter((k) => {
