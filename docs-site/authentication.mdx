@@ -26,10 +26,12 @@ These endpoints require no key:
 - `GET /v1/health`
 - `GET /v1/health/ready`
 - `GET /v1/openapi.json`
+- `GET /v1/stats`
+- `GET /metrics`
 
 ## Route hiding
 
-Anything else returns `401 unauthorized` without a valid Bearer token.
+Every other endpoint returns `401 unauthorized` without a valid Bearer token.
 
 Requests under `/v1/*` to paths that do not exist behave differently depending on whether you are authenticated, so the route surface is not leaked to anonymous clients:
 

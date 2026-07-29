@@ -23,8 +23,8 @@ During the alpha, tiers are rate-limit presets only — there is no billing, and
 
 | Header | Present on | Value |
 | --- | --- | --- |
-| `X-RateLimit-Limit` | 2xx | Bucket capacity for this key and surface. |
-| `X-RateLimit-Remaining` | 2xx | Tokens remaining after this request. |
+| `X-RateLimit-Limit` | 2xx, 429 | Bucket capacity for this key and surface. |
+| `X-RateLimit-Remaining` | 2xx, 429 | Tokens remaining after this request. |
 | `X-RateLimit-Reset` | 2xx, 429 | Seconds until the bucket refills to full from its current state. |
 | `Retry-After` | 429 only | Seconds to wait before retrying. |
 

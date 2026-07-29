@@ -3,14 +3,12 @@ title: "GET /v1/stats"
 description: "Indexer progress and chain lag from an in-memory snapshot, safe to poll."
 ---
 
-Indexer progress and chain lag, read from an in-memory snapshot refreshed by a background task. The endpoint does not touch the database, so it is safe to poll frequently. Requires authentication.
+Indexer progress and chain lag, read from an in-memory snapshot refreshed by a background task. The endpoint does not touch the database, so it is safe to poll frequently. This endpoint is public — no API key required.
 
 ## Request
 
 ```bash
-curl -s \
-  -H "Authorization: Bearer $CELLORA_KEY" \
-  $CELLORA_BASE/v1/stats | jq
+curl -s $CELLORA_BASE/v1/stats | jq
 ```
 
 ## Response

@@ -26,7 +26,7 @@ Querying CKB yourself means operating three moving pieces and keeping them in sy
 ## What the API gives you today
 
 - **Reorg-safe reads.** Reads stay consistent across chain reorgs, and opaque cursor pagination survives them instead of silently skipping or repeating rows.
-- **CKB-native cell filtering.** Cells come tagged with well-known lock and type scripts — secp256k1, anyone-can-pay, sUDT, xUDT, and RGB++ — so you can filter by what a cell is, not just by hash.
+- **CKB-native cell filtering.** Cells come tagged with well-known lock and type scripts — sighash (secp256k1), multisig, and Nervos DAO — so you can filter by what a cell is, not just by hash.
 - **Freshness you can read off every response.** `x-indexer-tip` and `x-indexer-tip-stale` headers, plus `is_stale` in `/v1/stats`, tell you how far the indexer is from the chain tip.
 - **API-key authentication** with per-key token-bucket rate limits, separate buckets for REST and GraphQL.
 - **Prometheus metrics** and an **OpenAPI 3.1** spec with an embedded Swagger UI.

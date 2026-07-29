@@ -1,6 +1,6 @@
 ---
 title: "Schema reference"
-description: "The full typed GraphQL schema: Query root, CellsInput, and Block, Cell, Script, ConsumedBy, CellsConnection, Meta, and Stats types."
+description: "The full typed GraphQL schema: Query root, CellsInput, and Block, GraphCell, Script, ConsumedBy, CellsConnection, Meta, and Stats types."
 ---
 
 The full, authoritative GraphQL schema. Field names are camelCase; they map one-to-one onto the snake_case REST fields.
@@ -36,7 +36,7 @@ type Block {
   indexedAt: String!
 }
 
-type Cell {
+type GraphCell {
   txHash: String!
   outputIndex: Int!
   blockNumber: Int!
@@ -44,8 +44,10 @@ type Cell {
   capacityShannons: Int!
   lock: Script!
   lockHash: String!
+  lockKind: String
   type: Script
   typeHash: String
+  typeKind: String
   data: String
   isLive: Boolean!
   consumedBy: ConsumedBy
@@ -64,7 +66,7 @@ type ConsumedBy {
 }
 
 type CellsConnection {
-  data: [Cell!]!
+  data: [GraphCell!]!
   nextCursor: String
   meta: Meta!
 }
@@ -81,10 +83,39 @@ type Stats {
   snapshotAgeSeconds: Int!
   isStale: Boolean!
 }
+
+type Subscription {
+  blocksLatest: GraphBlockMinedEvent!
+  cells(lockHash: String!): GraphCellCreatedEvent!
+}
+
+type GraphBlockMinedEvent {
+  number: Int!
+  hash: String!
+  parentHash: String!
+  timestamp: Int!
+}
+
+type GraphCellCreatedEvent {
+  txHash: String!
+  outputIndex: Int!
+  blockNumber: Int!
+  lockCodeHash: String!
+  lockHashType: Int!
+  lockArgs: String!
+  lockHash: String!
+  typeCodeHash: String
+  typeHashType: Int
+  typeArgs: String
+  typeHash: String
+  capacityShannons: Int!
+}
 ```
 
 ## Notes
 
 - **`cells` pagination** mirrors REST: `nextCursor` is opaque and `null` on the last page. Pass it back as `CellsInput.cursor`. See [Pagination](/pagination).
-- **`data`** on `Cell` is populated only when `CellsInput.includeData` is `true`.
+- **`data`** on `GraphCell` is populated only when `CellsInput.includeData` is `true`.
+- **`lockKind` / `typeKind`** on `GraphCell` carry the canonical short label for a registered script, or `null` for custom / unknown scripts.
+- **Subscriptions** stream over WebSocket. `blocksLatest` emits every newly indexed block; `cells(lockHash: ...)` emits newly created cells whose lock hash matches.
 - **`Stats` and `Meta`** carry the same tip/lag signals as the REST responses. See [Tip lag and read freshness](/tip-lag-and-freshness).

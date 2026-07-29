@@ -17,7 +17,7 @@ Copy your base URL from the [dashboard](https://cellora-nuxt.vercel.app). Which 
 
 - **JSON everywhere.** All responses are JSON.
 - **Hex format.** Hashes are `0x`-prefixed lowercase hex.
-- **Auth.** Every data endpoint requires `Authorization: Bearer <key>`. See [Authentication](/authentication). The only public paths are `/v1/health`, `/v1/health/ready`, and `/v1/openapi.json`.
+- **Auth.** Most data endpoints require `Authorization: Bearer <key>`. See [Authentication](/authentication). The public paths that need no key are `/v1/health`, `/v1/health/ready`, `/v1/stats`, and `/v1/openapi.json`.
 - **Pagination.** List endpoints return `{ data, next_cursor, meta }` with opaque cursors. See [Pagination](/pagination).
 - **Errors.** Non-2xx responses use a single envelope. See [Error handling](/errors).
 
@@ -28,7 +28,7 @@ Copy your base URL from the [dashboard](https://cellora-nuxt.vercel.app). Which 
 | `x-request-id` | all | Unique request id, echoed from the client or generated server-side. |
 | `x-indexer-tip` | 2xx | Tip block number observed at response time. |
 | `x-indexer-tip-stale` | 2xx | `true` when the tip snapshot is older than the staleness threshold. |
-| `X-RateLimit-Limit` / `X-RateLimit-Remaining` / `X-RateLimit-Reset` | 2xx | Token-bucket state. See [Rate limiting](/rate-limiting). |
+| `X-RateLimit-Limit` / `X-RateLimit-Remaining` / `X-RateLimit-Reset` | 2xx, 429 | Token-bucket state. See [Rate limiting](/rate-limiting). |
 
 ## Endpoints
 

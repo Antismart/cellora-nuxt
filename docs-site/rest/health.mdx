@@ -19,16 +19,37 @@ curl -s $CELLORA_BASE/v1/health | jq
 
 ## GET /v1/health/ready
 
-Readiness probe. Returns `200` when the database pool is reachable, `503` otherwise.
+Readiness probe. Each configured dependency is probed concurrently with a 1-second timeout. Returns `200` when every required dependency answered and `503` when any of them errored. `status` is `"ready"` on `200` and `"not_ready"` on `503`.
 
 ```bash
 curl -s $CELLORA_BASE/v1/health/ready | jq
 ```
 
 ```json
-{ "status": "ready", "db": "ok" }
+{
+  "status": "ready",
+  "db": "ok",
+  "redis": "ok",
+  "ckb_node": {
+    "state": "ok",
+    "tip": 14823420,
+    "is_synced": true
+  }
+}
 ```
 
+## Fields
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `status` | string | `"ready"` when every required dependency answered, `"not_ready"` otherwise. |
+| `db` | string | Postgres pool state — `"ok"` or `"error"`. |
+| `redis` | string | Redis state — `"ok"`, `"error"`, or `"skipped"` when no Redis client was attached at startup. |
+| `ckb_node` | object | CKB node probe result (see below). |
+| `ckb_node.state` | string | `"ok"`, `"error"`, or `"skipped"` when no CKB client was attached. |
+| `ckb_node.tip` | integer \| null | Tip height the node reported, when reachable. |
+| `ckb_node.is_synced` | boolean | `false` when the node is in initial block download (this does **not** flip the response to `503`). |
+
 <Info>
-Use `/v1/health` for liveness and `/v1/health/ready` for readiness. A `503` from the readiness probe means the database pool is unreachable; check server logs. For indexer freshness rather than process health, see [`/v1/stats`](/rest/stats).
+Use `/v1/health` for liveness and `/v1/health/ready` for readiness. A dependency reported as `"skipped"` is not counted against readiness — that dependency was not configured at startup. A CKB node still in initial block download reports `is_synced: false` inside a `200` response rather than a `503`, so the API can come online during catch-up. For indexer freshness rather than process health, see [`/v1/stats`](/rest/stats).
 </Info>

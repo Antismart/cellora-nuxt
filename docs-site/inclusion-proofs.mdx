@@ -5,9 +5,43 @@ description: "Cellora passes through CKB transaction inclusion (Merkle) proofs s
 
 CKB can produce a Merkle proof that a given transaction was included in a specific block. Cellora passes these inclusion proofs through unchanged, so clients that verify against the chain can do so without trusting the indexer.
 
+## The endpoint
+
+```
+GET /v1/proofs/{tx_hash}
+```
+
+`tx_hash` is the `0x`-prefixed, 32-byte transaction hash. Cellora forwards `get_transaction_proof` and `get_header` to the configured CKB node and returns both in one envelope, so you get everything needed to verify the transaction-to-header Merkle path without a second round-trip.
+
+```bash
+curl -s \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  "$CELLORA_BASE/v1/proofs/0x<tx_hash>" | jq
+```
+
+```json
+{
+  "tx_hash": "0x...",
+  "block_hash": "0x...",
+  "block_header": { /* forwarded verbatim from get_header */ },
+  "proof": { /* witnesses_root + proof, from get_transaction_proof */ }
+}
+```
+
+- **`tx_hash`** — the transaction the proof refers to, echoed back.
+- **`block_hash`** — the block containing the transaction, as reported by the node's proof generator.
+- **`block_header`** — the header for `block_hash`, forwarded unchanged from `get_header`.
+- **`proof`** — the Merkle proof body (`witnesses_root` and `proof`), forwarded unchanged from `get_transaction_proof`.
+
+A transaction that is not on-chain (or whose block the node has pruned) returns `404 not_found`; an unreachable node returns `503 upstream_unavailable`. See [Error handling](/errors).
+
 ## What passthrough means
 
 Cellora does not generate trust. It relays the proof produced by CKB so that a client holding a block header can independently check that a transaction is committed in that block. Verification happens in your client, against the chain — not against Cellora.
+
+<Warning>
+An inclusion proof only shows that a transaction **is committed in a block**. It does **not** prove completeness — it says nothing about whether Cellora returned every transaction or cell matching a query. Use it to verify individual commitments, not to audit the completeness of a list response.
+</Warning>
 
 ## When to use it
 
