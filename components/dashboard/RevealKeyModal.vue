@@ -19,7 +19,7 @@ watch(() => props.data, (v) => {
 
 const example = computed(() =>
   props.data
-    ? `curl https://api.cellora.dev/v1/blocks/latest \\
+    ? `curl https://cellora-nuxt.vercel.app/v1/blocks/latest \\
   -H "Authorization: Bearer ${props.data.full}"`
     : ''
 )

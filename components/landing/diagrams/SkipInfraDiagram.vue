@@ -26,6 +26,6 @@
     </g>
     <rect x="190" y="60" width="110" height="60" rx="6" fill="var(--brand-tint)" stroke="var(--brand)" stroke-width="1.4" />
     <text x="245" y="89" text-anchor="middle" fill="var(--brand-strong)" font-family="var(--font-mono)" font-size="12" font-weight="600">cellora</text>
-    <text x="245" y="103" text-anchor="middle" fill="var(--brand)" font-family="var(--font-mono)" font-size="9">api.cellora.dev</text>
+    <text x="245" y="103" text-anchor="middle" fill="var(--brand)" font-family="var(--font-mono)" font-size="9">cellora-nuxt.vercel.app</text>
   </svg>
 </template>

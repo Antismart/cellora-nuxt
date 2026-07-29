@@ -61,7 +61,7 @@ export const tiers = {
   pro:     { rest_burst: 3000,  rest_refill: 200, gql_burst: 1000,  gql_refill: 100,  price: null, label: 'Pro' },
 }
 
-export const sample_curl = `curl https://api.cellora.dev/v1/cells \\
+export const sample_curl = `curl https://cellora-nuxt.vercel.app/v1/cells \\
   -H "Authorization: Bearer cell_a1b2c3..." \\
   -G --data-urlencode "lock_hash=0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8" \\
   --data-urlencode "limit=20"`

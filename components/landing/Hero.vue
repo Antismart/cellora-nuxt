@@ -15,7 +15,7 @@ function openDocs() {
 }
 
 const jsCode = `const res = await fetch(
-  "https://api.cellora.dev/v1/cells?" + new URLSearchParams({
+  "https://cellora-nuxt.vercel.app/v1/cells?" + new URLSearchParams({
     lock_hash: "0x9bd7e06f...3cce8",
     limit: "20",
   }),
