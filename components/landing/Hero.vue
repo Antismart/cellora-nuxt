@@ -60,7 +60,7 @@ const promptLabel = computed(() => {
     <div class="hero__grid">
       <div>
         <div class="micro hero__eyebrow">
-          <Icon name="cell" :size="11" /> Private alpha · access is invite-based
+          <Icon name="cell" :size="11" /> Private alpha · free while in alpha
         </div>
         <h1 class="hero__title">
           Query Nervos CKB data<br />over REST and GraphQL.
@@ -73,7 +73,7 @@ const promptLabel = computed(() => {
         <div class="hero__ctas">
           <Button variant="primary" size="lg" @click="$emit('signIn')">
             <template #leftIcon><Icon name="github" :size="15" /></template>
-            Request access
+            Sign in with GitHub
           </Button>
           <Button variant="outline" size="lg" @click="openDocs">
             Read the docs

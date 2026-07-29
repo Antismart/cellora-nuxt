@@ -8,7 +8,7 @@ defineEmits<{ signIn: [] }>()
     <div class="cta__inner">
       <h2 class="cta__title">Create an API key.</h2>
       <p class="cta__lede">
-        Sign in with GitHub, then create your first key on the dashboard. Query CKB over REST and GraphQL on mainnet and testnet. Private alpha, access is invite-based.
+        Sign in with GitHub, then create your first key on the dashboard. Query CKB over REST and GraphQL on mainnet and testnet. Free while we're in alpha.
       </p>
       <div class="cta__buttons">
         <Button variant="primary" size="lg" @click="$emit('signIn')">
