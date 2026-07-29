@@ -9,16 +9,16 @@ defineEmits<{ signIn: [] }>()
 const snippet = ref<'rest' | 'graphql' | 'js'>('rest')
 const tip = useLiveTip()
 
-const jsCode = `import { Cellora } from "@cellora/sdk";
+const jsCode = `const res = await fetch(
+  "https://api.cellora.dev/v1/cells?" + new URLSearchParams({
+    lock_hash: "0x9bd7e06f...3cce8",
+    limit: "20",
+  }),
+  { headers: { Authorization: \`Bearer \${process.env.CELLORA_KEY}\` } },
+);
 
-const cellora = new Cellora({ apiKey: process.env.CELLORA_KEY });
-
-const cells = await cellora.cells.list({
-  lock_hash: "0x9bd7e06f...3cce8",
-  limit: 20,
-});
-
-console.log(cells.data[0].capacity_shannons);
+const { data } = await res.json();
+console.log(data[0].capacity_shannons);
 // → 19900000000`
 
 const tabs = [
@@ -69,16 +69,16 @@ const promptLabel = computed(() => {
             <template #leftIcon><Icon name="github" :size="15" /></template>
             Sign in with GitHub
           </Button>
-          <Button variant="outline" size="lg">
+          <Button variant="outline" size="lg" @click="navigateTo('/docs')">
             Read the docs
             <template #rightIcon><Icon name="arrowUpRight" :size="14" /></template>
           </Button>
         </div>
         <div class="hero__feats">
-          <span><Icon name="check" :size="13" :stroke="2" /> Reorg-safe</span>
           <span><Icon name="check" :size="13" :stroke="2" /> Cursor pagination</span>
           <span><Icon name="check" :size="13" :stroke="2" /> OpenAPI 3.1</span>
-          <span><Icon name="check" :size="13" :stroke="2" /> Prometheus</span>
+          <span><Icon name="check" :size="13" :stroke="2" /> Tip-lag headers</span>
+          <span><Icon name="check" :size="13" :stroke="2" /> Mainnet + testnet</span>
           <span><Icon name="check" :size="13" :stroke="2" /> FSL-1.1-ALv2</span>
         </div>
       </div>

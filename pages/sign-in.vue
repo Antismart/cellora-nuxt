@@ -37,7 +37,7 @@ useHead({ title: 'Sign in · Cellora' })
             We only read your handle, avatar, and primary email. We never push to your repos.
           </div>
           <div class="hairline signin__foot">
-            New to Cellora? <a href="#" style="color: var(--brand)">Read the docs</a> · <a href="#" style="color: var(--brand)">License</a>
+            New to Cellora? <NuxtLink to="/docs" style="color: var(--brand)">Read the docs</NuxtLink> · <span class="mono">FSL-1.1-ALv2</span>
           </div>
         </div>
       </Card>

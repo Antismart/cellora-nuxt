@@ -5,7 +5,7 @@ const items = [
   { iconName: 'activity', title: 'Tip-lag stats', detail: 'Every response carries x-indexer-tip and x-indexer-tip-stale headers.', hint: 'x-indexer-tip-stale: false' },
   { iconName: 'box', title: 'Transaction proofs passthrough', detail: 'Forward CKB MMR-style inclusion proofs without re-implementing the verifier.', hint: 'GET /v1/transactions/{hash}/proof' },
   { iconName: 'server', title: 'Prometheus metrics', detail: 'p50/p95/p99 by endpoint, key, surface. Drop into your Grafana, alert on lag.', hint: 'cellora_request_duration_seconds_bucket' },
-  { iconName: 'code', title: 'OpenAPI 3.1 spec', detail: 'Generate clients in any language. Swagger UI live in your dashboard.', hint: 'GET /v1/openapi.json' },
+  { iconName: 'code', title: 'OpenAPI 3.1 spec', detail: 'Codegen clients from the spec; Swagger UI lives in the dashboard.', hint: 'GET /v1/openapi.json' },
 ]
 </script>
 
@@ -13,9 +13,9 @@ const items = [
   <section id="features" class="ft">
     <div class="ft__inner">
       <SectionHead
-        eyebrow="What you get"
-        title="Features"
-        subtitle="The plumbing every CKB team ends up writing, factored out into one API."
+        eyebrow="On every response"
+        title="What the API gives you"
+        subtitle="Cursors, script tags, tip-lag headers, inclusion proofs, and metrics — on the response, not bolted on later."
       />
       <div class="ft__grid">
         <div v-for="it in items" :key="it.title" class="ft__cell">

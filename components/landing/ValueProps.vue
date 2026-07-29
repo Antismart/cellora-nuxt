@@ -7,8 +7,8 @@ import RestGqlDiagram from './diagrams/RestGqlDiagram.vue'
 // markRaw — don't make the component definitions reactive (saves work, avoids warnings).
 const items = [
   {
-    title: 'Skip the infra',
-    body: 'No ckb-indexer process, no Postgres to tune, no snapshot pipeline. The indexer runs on our hardware.',
+    title: 'One endpoint, not three processes',
+    body: 'A ckb-indexer process, a tuned Postgres, and a snapshot pipeline you keep alive — collapsed behind one HTTP endpoint.',
     diagram: markRaw(SkipInfraDiagram),
   },
   {
@@ -28,9 +28,9 @@ const items = [
   <section class="vp">
     <div class="vp__inner">
       <SectionHead
-        eyebrow="Why"
-        title="What you stop maintaining"
-        subtitle="Three pieces of CKB infrastructure that most teams end up re-implementing."
+        eyebrow="How it behaves"
+        title="Correctness you'd otherwise build yourself"
+        subtitle="Three behaviours that are easy to get wrong when you index CKB by hand."
       />
       <div class="vp__grid">
         <div v-for="it in items" :key="it.title" class="vp__card">

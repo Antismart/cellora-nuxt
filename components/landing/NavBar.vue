@@ -23,8 +23,6 @@ if (import.meta.client) {
       <nav class="nav__links">
         <a href="#features">Features</a>
         <a href="#explorer">Live</a>
-        <a href="#docs" class="nav__link-icon">Docs <Icon name="arrowUpRight" :size="12" /></a>
-        <a href="#github" class="nav__link-icon"><Icon name="github" :size="14" /> GitHub</a>
       </nav>
       <div class="nav__cta">
         <span class="mono micro nav__tip">

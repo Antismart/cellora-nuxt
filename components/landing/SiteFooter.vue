@@ -1,11 +1,15 @@
 <script setup lang="ts">
 const today = new Date().toISOString().slice(0, 10)
 
+// Only in-page anchors that actually resolve on this landing page.
 const groups = [
-  { t: 'Product', l: ['Features', 'Live explorer', 'Status', 'Changelog'] },
-  { t: 'Developers', l: ['Docs', 'OpenAPI spec', 'GraphQL schema', 'SDKs', 'GitHub'] },
-  { t: 'Company', l: ['About', 'Blog', 'Careers', 'Contact'] },
-  { t: 'Legal', l: ['License (FSL-1.1-ALv2)', 'Privacy', 'Terms', 'Security'] },
+  {
+    t: 'On this page',
+    l: [
+      { label: 'Features', href: '#features' },
+      { label: 'Live explorer', href: '#explorer' },
+    ],
+  },
 ]
 </script>
 
@@ -16,15 +20,13 @@ const groups = [
         <Wordmark />
         <div class="ftr__tag">Indexer-as-a-Service for Nervos CKB.</div>
         <div class="ftr__status">
-          <Badge variant="outline" size="sm" mono>
-            <span class="pulse-dot ftr__status-dot" />All systems normal
-          </Badge>
+          <Badge variant="brand" size="sm" dot="pulse">Private alpha · Wk 5/7</Badge>
         </div>
       </div>
       <div v-for="g in groups" :key="g.t">
         <div class="micro" style="margin-bottom: 12px">{{ g.t }}</div>
         <div class="ftr__links">
-          <a v-for="x in g.l" :key="x" href="#" class="ftr__link">{{ x }}</a>
+          <a v-for="x in g.l" :key="x.label" :href="x.href" class="ftr__link">{{ x.label }}</a>
         </div>
       </div>
     </div>
@@ -43,9 +45,10 @@ const groups = [
 }
 .ftr__cols {
   max-width: 1240px; margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+  display: flex;
+  justify-content: space-between;
   gap: 40px;
+  flex-wrap: wrap;
 }
 .ftr__tag {
   margin-top: 12px;
@@ -55,11 +58,6 @@ const groups = [
   line-height: 1.55;
 }
 .ftr__status { margin-top: 18px; display: flex; align-items: center; gap: 10px; }
-.ftr__status-dot {
-  width: 6px; height: 6px; border-radius: 99px;
-  background: var(--brand);
-  display: inline-block; margin-right: 6px;
-}
 .ftr__links { display: flex; flex-direction: column; gap: 8px; }
 .ftr__link { font-size: 13px; color: var(--text-muted); }
 .ftr__bottom {

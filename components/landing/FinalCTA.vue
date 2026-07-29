@@ -15,10 +15,6 @@ defineEmits<{ signIn: [] }>()
           <template #leftIcon><Icon name="github" :size="15" /></template>
           Sign in with GitHub
         </Button>
-        <Button variant="outline" size="lg">
-          Read the docs
-          <template #rightIcon><Icon name="arrowUpRight" :size="14" /></template>
-        </Button>
       </div>
     </div>
   </section>
