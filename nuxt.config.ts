@@ -5,7 +5,7 @@ const apiBaseUrl = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:808
 
 // External documentation site. Docs links across the dashboard open this in a new
 // tab rather than routing to the retired in-app /docs page.
-const docsUrl = process.env.NUXT_PUBLIC_DOCS_URL || 'https://docs.cellora.dev'
+const docsUrl = process.env.NUXT_PUBLIC_DOCS_URL || 'https://cellora.mintlify.site'
 
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
