@@ -1,0 +1,52 @@
+---
+title: "GET /v1/blocks/latest"
+description: "Returns the highest-numbered indexed block with its full field set."
+---
+
+The highest-numbered block Cellora has indexed. Requires authentication.
+
+## Request
+
+```bash
+curl -s \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  $CELLORA_BASE/v1/blocks/latest | jq
+```
+
+## Response
+
+```json
+{
+  "number": 12345,
+  "hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "parent_hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "timestamp_ms": 1712345678901,
+  "epoch": 8796117893191933,
+  "transactions_count": 12,
+  "proposals_count": 0,
+  "uncles_count": 0,
+  "nonce": "51297458091837492857483918273746501283",
+  "dao": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "indexed_at": "2026-04-23T10:45:12.123456Z"
+}
+```
+
+## Fields
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `number` | integer | Block height. |
+| `hash` | string | Block hash, `0x`-prefixed hex. |
+| `parent_hash` | string | Parent block hash. |
+| `timestamp_ms` | integer | Block timestamp in milliseconds. |
+| `epoch` | integer | Packed CKB epoch value. |
+| `transactions_count` | integer | Number of transactions in the block. |
+| `proposals_count` | integer | Number of proposals. |
+| `uncles_count` | integer | Number of uncles. |
+| `nonce` | string | Block nonce (large integer, as a string). |
+| `dao` | string | Packed DAO field, `0x`-prefixed hex. |
+| `indexed_at` | string | When Cellora indexed the block (ISO 8601 UTC). |
+
+## Errors
+
+Returns `404 not_found` when the chain has not been sampled yet — that is, before the indexer has written its first block. See [Error handling](/errors).

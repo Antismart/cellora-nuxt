@@ -1,0 +1,98 @@
+---
+title: "GET /v1/cells"
+description: "Paginated cell query by exactly one of lock_hash or type_hash, with is_live, limit, cursor, and include_data."
+---
+
+Paginated list of cells matching a lock or type script hash. Requires authentication.
+
+Exactly one of `lock_hash` or `type_hash` must be supplied. Both must be `0x`-prefixed 32-byte hex (64 hex characters after the prefix).
+
+## Query parameters
+
+<ParamField query="lock_hash" type="string">
+  `0x`-prefixed 32-byte hex. Required if `type_hash` is absent.
+</ParamField>
+
+<ParamField query="type_hash" type="string">
+  `0x`-prefixed 32-byte hex. Required if `lock_hash` is absent.
+</ParamField>
+
+<ParamField query="is_live" type="boolean">
+  `true` for unspent cells, `false` for consumed cells. Omit to return both.
+</ParamField>
+
+<ParamField query="limit" type="integer" default="50">
+  Page size. Maximum `500`.
+</ParamField>
+
+<ParamField query="cursor" type="string">
+  Opaque cursor. Pass the `next_cursor` from the previous response to fetch the next page. See [Pagination](/pagination).
+</ParamField>
+
+<ParamField query="include_data" type="boolean" default="false">
+  Include the raw cell `data` blob on every cell. Off by default because cell data can be large.
+</ParamField>
+
+## Request
+
+```bash
+curl -s \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  "$CELLORA_BASE/v1/cells?lock_hash=0xabc...&is_live=true&limit=10" | jq
+```
+
+## Response
+
+```json
+{
+  "data": [
+    {
+      "tx_hash": "0xd4f29c3a1e8b7f6d2a5c9e3b1f7a4d8c2e6b0f4a8d2c6e0b4f8a2d6c0e4b8f2",
+      "output_index": 0,
+      "block_number": 14823400,
+      "block_hash": "0x...",
+      "capacity_shannons": 10000000000,
+      "lock": {
+        "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9d5cefa...",
+        "hash_type": "type",
+        "args": "0xdeadbeef"
+      },
+      "lock_hash": "0xabc...",
+      "type": null,
+      "type_hash": null,
+      "is_live": true,
+      "consumed_by": null
+    }
+  ],
+  "next_cursor": "eyJibiI6MTQ4MjM0MDAsInR4IjoiMHhkNGYyOWMzYSIsIm9pIjowfQ",
+  "meta": { "indexer_tip": 14823417, "node_tip": 14823420 }
+}
+```
+
+## Cell fields
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `tx_hash` | string | Hash of the transaction that created the cell. |
+| `output_index` | integer | Output index within that transaction. |
+| `block_number` | integer | Block that created the cell. |
+| `block_hash` | string | Hash of that block. |
+| `capacity_shannons` | integer | Cell capacity in shannons. |
+| `lock` | object | Lock script (`code_hash`, `hash_type`, `args`). |
+| `lock_hash` | string | Hash of the lock script. |
+| `type` | object \| null | Type script, or `null` if none. |
+| `type_hash` | string \| null | Hash of the type script, or `null`. |
+| `is_live` | boolean | Whether the cell is unspent. |
+| `consumed_by` | object \| null | Where the cell was spent, if consumed. |
+| `data` | string | Raw cell data — present only when `include_data=true`. |
+
+Recognized lock and type scripts are tagged; see [Well-known script tagging](/script-tagging).
+
+## Errors
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `bad_request` | Both or neither of `lock_hash`/`type_hash`, invalid hex, wrong hash length, or `limit` of 0 or above the maximum (500). |
+| 400 | `invalid_cursor` | Cursor is malformed, tampered, or references a tx hash of the wrong length. |
+
+See [Error handling](/errors).

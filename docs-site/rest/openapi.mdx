@@ -1,0 +1,32 @@
+---
+title: "OpenAPI spec and Swagger UI"
+description: "GET /v1/openapi.json serves the OpenAPI 3.1 spec, for use with Swagger UI, Postman, or code generators."
+---
+
+The REST surface is described by an OpenAPI 3.1 specification. `GET /v1/openapi.json` serves it and is public — no API key required.
+
+## Fetch the spec
+
+```bash
+curl -s $CELLORA_BASE/v1/openapi.json | jq '.paths | keys'
+```
+
+The document matches the `/v1/*` surface documented here and reports `openapi: "3.1.0"`, version `0.1.0`, and the `FSL-1.1-ALv2` license.
+
+## Use it
+
+<CardGroup cols={3}>
+  <Card title="Swagger UI" icon="book-open">
+    Load the spec into Swagger UI to explore endpoints interactively.
+  </Card>
+  <Card title="Postman" icon="paper-plane">
+    Import `openapi.json` to generate a ready-to-use request collection.
+  </Card>
+  <Card title="Code generators" icon="code">
+    Feed the spec into any OpenAPI code generator to produce a typed client.
+  </Card>
+</CardGroup>
+
+<Info>
+Because the spec is served live at `/v1/openapi.json`, tooling you point at that URL always reflects the running API.
+</Info>

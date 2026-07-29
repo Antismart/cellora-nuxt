@@ -1,0 +1,21 @@
+---
+title: "Networks"
+description: "Cellora serves Nervos CKB mainnet and testnet. Your base URL and key select the network you query."
+---
+
+Cellora serves Nervos CKB: **mainnet and testnet**. That is the scope — a single hosted service over one chain, on both of its networks.
+
+## Selecting a network
+
+Your base URL and API key together determine which network you query against. Copy the base URL for the network you want from the [dashboard](https://cellora-nuxt.vercel.app) and set it as `CELLORA_BASE`:
+
+```bash
+export CELLORA_BASE="<base-url-from-dashboard>"
+export CELLORA_KEY="cell_<prefix>_<secret>"
+```
+
+Every endpoint documented here behaves identically across both networks — only the data behind the base URL differs. There is nothing multi-chain to configure: the same [REST](/rest/overview) and [GraphQL](/graphql/overview) surfaces apply to whichever network your base URL points at.
+
+<Info>
+Cellora is in private alpha. Access is invite-based and the API may change.
+</Info>

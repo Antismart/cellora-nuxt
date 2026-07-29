@@ -1,0 +1,42 @@
+---
+title: "GET /v1/stats"
+description: "Indexer progress and chain lag from an in-memory snapshot, safe to poll."
+---
+
+Indexer progress and chain lag, read from an in-memory snapshot refreshed by a background task. The endpoint does not touch the database, so it is safe to poll frequently. Requires authentication.
+
+## Request
+
+```bash
+curl -s \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  $CELLORA_BASE/v1/stats | jq
+```
+
+## Response
+
+```json
+{
+  "indexer_tip": 14823417,
+  "node_tip": 14823420,
+  "lag_blocks": 3,
+  "snapshot_age_seconds": 1,
+  "is_stale": false
+}
+```
+
+## Fields
+
+| Field | Notes |
+| --- | --- |
+| `indexer_tip` | Highest block Cellora has fully indexed. |
+| `node_tip` | Current head of the CKB chain as seen by the node. |
+| `lag_blocks` | `node_tip − indexer_tip`. A lag of 0 to 5 is normal. |
+| `snapshot_age_seconds` | Age of the in-memory snapshot. |
+| `is_stale` | `true` when the snapshot has not refreshed within the staleness threshold (default 5 s). |
+
+<Warning>
+`is_stale: true` means the refresh task has not published a fresh snapshot within the threshold — either the CKB node or Postgres is unreachable. Check [`/v1/health/ready`](/rest/health) and server logs.
+</Warning>
+
+See [Tip lag and read freshness](/tip-lag-and-freshness) for how to reason about these fields and the matching `x-indexer-tip` headers.

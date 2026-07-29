@@ -1,0 +1,47 @@
+---
+title: "Authentication"
+description: "Authenticate every data endpoint with an Authorization: Bearer API key. Keys are Argon2id-hashed and shown once."
+---
+
+Every data-serving endpoint requires an API key, presented as a Bearer token in the `Authorization` header. That header is the only change you need to make to an existing HTTP client.
+
+```bash
+Authorization: Bearer cell_<prefix>_<secret>
+```
+
+## Key format and storage
+
+Keys look like `cell_<prefix>_<secret>`. The full key is shown once at creation.
+
+<Warning>
+Only the prefix and the Argon2id hash of the secret are persisted. A lost key is unrecoverable and must be reissued from the dashboard.
+</Warning>
+
+A key carries a tier (`free`, `starter`, `pro`) that is fixed for the lifetime of the key and drives its rate-limit parameters. During the alpha, tiers are rate-limit presets only — there is no billing. See [Rate limiting](/rate-limiting).
+
+## Public paths
+
+These endpoints require no key:
+
+- `GET /v1/health`
+- `GET /v1/health/ready`
+- `GET /v1/openapi.json`
+
+## Route hiding
+
+Anything else returns `401 unauthorized` without a valid Bearer token.
+
+Requests under `/v1/*` to paths that do not exist behave differently depending on whether you are authenticated, so the route surface is not leaked to anonymous clients:
+
+<AccordionGroup>
+  <Accordion title="Unauthenticated request to an unknown path">
+    Returns `401 unauthorized` — the same response as any missing or invalid token. Nonexistent routes are indistinguishable from protected ones.
+  </Accordion>
+  <Accordion title="Authenticated request to an unknown path">
+    Returns `404 not_found`, because a valid key already has access to the route surface.
+  </Accordion>
+</AccordionGroup>
+
+## Create a key
+
+Sign in to the [dashboard](https://cellora-nuxt.vercel.app) with GitHub, open **API Keys**, and click **Create key**. See the [Quickstart](/quickstart) for the full flow.

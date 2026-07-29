@@ -1,0 +1,34 @@
+---
+title: "Health and readiness"
+description: "GET /v1/health is the liveness probe; GET /v1/health/ready is the readiness probe. Neither requires auth."
+---
+
+Two probe endpoints for container orchestrators. Both are public — no API key required.
+
+## GET /v1/health
+
+Liveness probe. Always returns `200` if the process is running.
+
+```bash
+curl -s $CELLORA_BASE/v1/health | jq
+```
+
+```json
+{ "status": "ok", "version": "0.1.0" }
+```
+
+## GET /v1/health/ready
+
+Readiness probe. Returns `200` when the database pool is reachable, `503` otherwise.
+
+```bash
+curl -s $CELLORA_BASE/v1/health/ready | jq
+```
+
+```json
+{ "status": "ready", "db": "ok" }
+```
+
+<Info>
+Use `/v1/health` for liveness and `/v1/health/ready` for readiness. A `503` from the readiness probe means the database pool is unreachable; check server logs. For indexer freshness rather than process health, see [`/v1/stats`](/rest/stats).
+</Info>

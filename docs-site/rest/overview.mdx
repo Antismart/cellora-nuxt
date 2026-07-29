@@ -1,0 +1,54 @@
+---
+title: "REST API overview"
+description: "Base URL and conventions for the /v1/* REST surface: JSON responses, 0x-prefixed lowercase hex, and common response headers."
+---
+
+The REST surface lives under `/v1/*` and mirrors the [OpenAPI 3.1 specification](/rest/openapi). It is a read-only HTTP surface over indexed CKB data.
+
+## Base URL
+
+```bash
+export CELLORA_BASE="<base-url-from-dashboard>"
+```
+
+Copy your base URL from the [dashboard](https://cellora-nuxt.vercel.app). Which network it points at is covered in [Networks](/networks).
+
+## Conventions
+
+- **JSON everywhere.** All responses are JSON.
+- **Hex format.** Hashes are `0x`-prefixed lowercase hex.
+- **Auth.** Every data endpoint requires `Authorization: Bearer <key>`. See [Authentication](/authentication). The only public paths are `/v1/health`, `/v1/health/ready`, and `/v1/openapi.json`.
+- **Pagination.** List endpoints return `{ data, next_cursor, meta }` with opaque cursors. See [Pagination](/pagination).
+- **Errors.** Non-2xx responses use a single envelope. See [Error handling](/errors).
+
+## Common response headers
+
+| Header | On | Meaning |
+| --- | --- | --- |
+| `x-request-id` | all | Unique request id, echoed from the client or generated server-side. |
+| `x-indexer-tip` | 2xx | Tip block number observed at response time. |
+| `x-indexer-tip-stale` | 2xx | `true` when the tip snapshot is older than the staleness threshold. |
+| `X-RateLimit-Limit` / `X-RateLimit-Remaining` / `X-RateLimit-Reset` | 2xx | Token-bucket state. See [Rate limiting](/rate-limiting). |
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="GET /v1/health" href="/rest/health">
+    Liveness and readiness probes.
+  </Card>
+  <Card title="GET /v1/blocks/latest" href="/rest/blocks-latest">
+    The highest indexed block.
+  </Card>
+  <Card title="GET /v1/blocks/{number}" href="/rest/blocks-by-number">
+    A block by height.
+  </Card>
+  <Card title="GET /v1/cells" href="/rest/cells">
+    Paginated cells by lock or type hash.
+  </Card>
+  <Card title="GET /v1/stats" href="/rest/stats">
+    Indexer progress and chain lag.
+  </Card>
+  <Card title="GET /v1/openapi.json" href="/rest/openapi">
+    The machine-readable OpenAPI 3.1 spec.
+  </Card>
+</CardGroup>

@@ -1,0 +1,46 @@
+---
+title: "GraphQL overview"
+description: "POST /graphql exposes the same data as REST through one typed root, with identical Bearer auth and a separate rate-limit bucket."
+---
+
+`POST /graphql` exposes the same data as the [REST surface](/rest/overview) through a single typed query root.
+
+## Authentication
+
+Identical to REST: send your key as a Bearer token in the `Authorization` header. See [Authentication](/authentication).
+
+## Rate limiting
+
+The GraphQL rate-limit bucket is **separate** from REST, so the two surfaces do not consume each other's quota. See [Rate limiting](/rate-limiting).
+
+## Quick example
+
+```bash
+curl -s -X POST $CELLORA_BASE/graphql \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ blocksLatest { number hash transactionsCount } stats { lagBlocks isStale } }"}' | jq
+```
+
+## Errors
+
+GraphQL uses the standard GraphQL response shape — a top-level `errors` array on a `200` response:
+
+```json
+{ "data": null, "errors": [{ "message": "..." }] }
+```
+
+<Warning>
+Branch on the response shape, not the HTTP status. Auth failures and rate-limit refusals still return `401` / `429` with the REST error envelope, because those checks run before the GraphQL handler. See [Error handling](/errors).
+</Warning>
+
+## Next
+
+<CardGroup cols={2}>
+  <Card title="Schema reference" icon="sitemap" href="/graphql/schema">
+    The full typed schema: Query root, inputs, and object types.
+  </Card>
+  <Card title="Example queries" icon="play" href="/graphql/queries">
+    Latest block, cells by lock hash, and indexer stats.
+  </Card>
+</CardGroup>

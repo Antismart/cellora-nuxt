@@ -1,0 +1,66 @@
+---
+title: "Quickstart"
+description: "Create an API key, export your base URL and key, and make your first authenticated request to /v1/blocks/latest."
+---
+
+By the end of this guide you will have created an API key, exported your base URL and key, and made your first authenticated REST request.
+
+There is no node to run, no indexer to sync, and no disk space to provision. Sign in, get a key, and query CKB data in three steps.
+
+## Create an API key
+
+Sign in to the [dashboard](https://cellora-nuxt.vercel.app) with GitHub, open **API Keys**, and click **Create key**.
+
+<Warning>
+The full key is shown exactly once at creation. Copy it immediately — only its prefix and an Argon2id hash of the secret are stored, so a lost key is unrecoverable and must be reissued.
+</Warning>
+
+## Export your base URL and key
+
+Copy your base URL from the dashboard and export both values so the examples in these docs work as written.
+
+```bash
+export CELLORA_BASE="<base-url-from-dashboard>"
+export CELLORA_KEY="cell_<prefix>_<secret>"
+```
+
+## Make your first query
+
+Send your key as a Bearer token on every data endpoint. That is the only change to your HTTP client setup.
+
+```bash
+curl -s \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  $CELLORA_BASE/v1/blocks/latest | jq
+```
+
+```json
+{
+  "number": 14823417,
+  "hash": "0x4a9fd3c8b2e1f07a3d5c9e2b4f6a8d0c1e3b5a7f9d2c4e6b8a0c2e4f6a8d0c2",
+  "parent_hash": "0x3b8ec1a9f2d4e6b8c0a2d4f6b8e0a2c4f6e8b0d2f4a6c8e0a2c4d6f8b0e2a4",
+  "timestamp_ms": 1749513600000,
+  "epoch": 9182,
+  "transactions_count": 14,
+  "proposals_count": 3,
+  "uncles_count": 0,
+  "indexed_at": "2026-06-10T08:00:00.000Z"
+}
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    How Bearer tokens, public paths, and route hiding work.
+  </Card>
+  <Card title="Run the same query over GraphQL" icon="diagram-project" href="/graphql/overview">
+    The same data through one typed root at `POST /graphql`.
+  </Card>
+  <Card title="Paginate with cursors" icon="list" href="/pagination">
+    Walk every page of a cell list with opaque cursors.
+  </Card>
+  <Card title="Read the tip-lag headers" icon="gauge" href="/tip-lag-and-freshness">
+    Know how fresh the indexed data is on every response.
+  </Card>
+</CardGroup>

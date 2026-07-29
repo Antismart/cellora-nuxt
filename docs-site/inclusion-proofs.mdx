@@ -1,0 +1,16 @@
+---
+title: "Transaction inclusion proofs"
+description: "Cellora passes through CKB transaction inclusion (Merkle) proofs so clients can independently verify a transaction was included in a block."
+---
+
+CKB can produce a Merkle proof that a given transaction was included in a specific block. Cellora passes these inclusion proofs through unchanged, so clients that verify against the chain can do so without trusting the indexer.
+
+## What passthrough means
+
+Cellora does not generate trust. It relays the proof produced by CKB so that a client holding a block header can independently check that a transaction is committed in that block. Verification happens in your client, against the chain — not against Cellora.
+
+## When to use it
+
+Use inclusion proofs when your application must not take the indexer's word that a transaction was included — for example, light clients or bridges that verify commitments against block headers they already trust.
+
+For most read paths you do not need a proof: query blocks, transactions, and cells directly over [REST](/rest/overview) or [GraphQL](/graphql/overview) and rely on Cellora's [reorg-safe reads](/tip-lag-and-freshness).

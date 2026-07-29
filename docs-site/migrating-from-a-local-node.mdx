@@ -1,0 +1,216 @@
+---
+title: "Migrating from a local node"
+description: "Replace a CKB node and a separate ckb-indexer with one Cellora base URL and an API key. Side-by-side curl, JavaScript, and Python examples."
+---
+
+If you have code that talks to a local CKB node and a separate ckb-indexer, this is everything that changes. Nothing else in your application needs to move.
+
+## The switch
+
+| What you had with a local node | What you do with Cellora |
+| --- | --- |
+| `http://localhost:8114` — CKB full node, weeks to sync, ~100 GB disk | `$CELLORA_BASE` — already synced, nothing to run |
+| `http://localhost:8116` — ckb-indexer, a second binary to run and keep synced | `$CELLORA_BASE` — same base URL, cell queries built in |
+| No auth header on localhost | `Authorization: Bearer $CELLORA_KEY` on every request |
+| `"0xf4240"` — block numbers hex-encoded in JSON-RPC params | `/v1/blocks/1000000` — decimal integers in the URL path |
+| POST with a JSON-RPC envelope | GET with query params — standard REST, any HTTP client |
+
+## curl
+
+<Tabs>
+  <Tab title="Check the chain tip">
+    <CodeGroup>
+    ```bash Before — CKB JSON-RPC
+    # Requires a CKB full node running locally
+    curl -s http://localhost:8114 \
+      -H 'Content-Type: application/json' \
+      -d '{"id":1,"jsonrpc":"2.0","method":"get_tip_block_number","params":[]}' | jq
+    # Response: {"jsonrpc":"2.0","result":"0xe24ee9","id":1}
+    # Result is a hex string — convert it yourself: parseInt("0xe24ee9", 16) = 14831337
+    ```
+
+    ```bash After — Cellora
+    curl -s \
+      -H "Authorization: Bearer $CELLORA_KEY" \
+      $CELLORA_BASE/v1/stats | jq '{tip: .node_tip, lag: .lag_blocks}'
+    # Response: {"tip": 14831337, "lag": 2}  — plain decimal, no conversion needed
+    ```
+    </CodeGroup>
+  </Tab>
+  <Tab title="Get a block by number">
+    <CodeGroup>
+    ```bash Before — CKB JSON-RPC
+    # Block number must be hex-encoded before sending
+    curl -s http://localhost:8114 \
+      -H 'Content-Type: application/json' \
+      -d '{"id":1,"jsonrpc":"2.0","method":"get_block_by_number","params":["0xf4240"]}' | jq
+    ```
+
+    ```bash After — Cellora
+    # Pass the decimal number directly — no encoding
+    curl -s \
+      -H "Authorization: Bearer $CELLORA_KEY" \
+      $CELLORA_BASE/v1/blocks/1000000 | jq
+    ```
+    </CodeGroup>
+  </Tab>
+  <Tab title="Query live cells">
+    The ckb-indexer is a separate binary that runs alongside the node on its own port. If it falls behind or crashes, your cell queries break independently of the node. With Cellora, cell queries are a single GET on the same base URL as everything else.
+
+    <CodeGroup>
+    ```bash Before — ckb-indexer RPC, port 8116
+    # Requires TWO running services:
+    #   - CKB full node on port 8114
+    #   - CKB indexer on port 8116 (separate binary, separate sync process)
+    curl -s http://localhost:8116 \
+      -H 'Content-Type: application/json' \
+      -d '{
+        "id": 2,
+        "jsonrpc": "2.0",
+        "method": "get_cells",
+        "params": [
+          {
+            "script": {
+              "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9d5cefa3b...",
+              "hash_type": "type",
+              "args": "0xdeadbeef"
+            },
+            "script_type": "lock",
+            "filter": null
+          },
+          "asc",
+          "0x64"
+        ]
+      }' | jq
+    ```
+
+    ```bash After — Cellora
+    # One service, one endpoint, no JSON-RPC envelope
+    curl -s \
+      -H "Authorization: Bearer $CELLORA_KEY" \
+      "$CELLORA_BASE/v1/cells?lock_hash=0x...&is_live=true&limit=100" | jq
+    ```
+    </CodeGroup>
+  </Tab>
+</Tabs>
+
+## JavaScript / TypeScript
+
+Replace the hand-rolled JSON-RPC helper and two service URLs with a single `get()` function that attaches your key.
+
+<CodeGroup>
+```js Before — CKB RPC + indexer
+// Before: CKB node on :8114 + CKB indexer on :8116
+const NODE    = 'http://localhost:8114'
+const INDEXER = 'http://localhost:8116'
+
+const rpc = async (url, method, params = []) => {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: 1, jsonrpc: '2.0', method, params }),
+  })
+  const { result, error } = await res.json()
+  if (error) throw new Error(error.message)
+  return result
+}
+
+// Tip comes back as a hex string — must convert
+const tip = parseInt(await rpc(NODE, 'get_tip_block_number'), 16)
+
+// Block number must be hex-encoded before sending
+const block = await rpc(NODE, 'get_block_by_number', ['0xf4240'])
+
+// Cells require the indexer at a different port + hex page size
+const { objects: cells } = await rpc(INDEXER, 'get_cells', [
+  { script: { code_hash: '0x9bd7...', hash_type: 'type', args: '0x...' }, script_type: 'lock' },
+  'asc', '0x64',
+])
+```
+
+```js After — Cellora
+// After: just a base URL + API key (both from your dashboard)
+const BASE = process.env.CELLORA_BASE
+const KEY  = process.env.CELLORA_KEY
+
+const get = (path) =>
+  fetch(`${BASE}${path}`, {
+    headers: { Authorization: `Bearer ${KEY}` },
+  }).then((r) => r.json())
+
+// Decimal integer, no conversion
+const { node_tip: tip } = await get('/v1/stats')
+
+// Decimal number in the URL, no encoding
+const block = await get('/v1/blocks/1000000')
+
+// Same endpoint as everything else
+const { data: cells, next_cursor } = await get(
+  '/v1/cells?lock_hash=0x...&is_live=true&limit=100',
+)
+```
+</CodeGroup>
+
+<Info>
+The `get()` helper above is all you need to get started. For production, wrap it with your preferred HTTP client and add retry logic that respects the `Retry-After` header on 429 responses. See [Rate limiting](/rate-limiting).
+</Info>
+
+## Python
+
+<CodeGroup>
+```python Before — CKB RPC + indexer
+# Before: CKB node on :8114 + CKB indexer on :8116
+import requests
+
+NODE    = "http://localhost:8114"
+INDEXER = "http://localhost:8116"
+
+def rpc(url, method, params=None):
+    r = requests.post(url, json={
+        "id": 1, "jsonrpc": "2.0",
+        "method": method, "params": params or [],
+    })
+    data = r.json()
+    if "error" in data:
+        raise RuntimeError(data["error"]["message"])
+    return data["result"]
+
+# Tip is a hex string — must convert
+tip = int(rpc(NODE, "get_tip_block_number"), 16)
+
+# Block number must be hex-encoded
+block = rpc(NODE, "get_block_by_number", [hex(1_000_000)])
+
+# Cells require the indexer at a different port
+result = rpc(INDEXER, "get_cells", [
+    {"script": {"code_hash": "0x9bd7...", "hash_type": "type", "args": "0x..."}, "script_type": "lock"},
+    "asc", "0x64",
+])
+cells = result["objects"]
+```
+
+```python After — Cellora
+# After: just a base URL + API key (both from your dashboard)
+import requests, os
+
+BASE    = os.environ["CELLORA_BASE"]
+HEADERS = {"Authorization": f"Bearer {os.environ['CELLORA_KEY']}"}
+
+def get(path):
+    return requests.get(f"{BASE}{path}", headers=HEADERS).json()
+
+# Plain decimal
+tip = get("/v1/stats")["node_tip"]
+
+# Decimal number, no encoding
+block = get("/v1/blocks/1000000")
+
+# No separate indexer service
+result = get("/v1/cells?lock_hash=0x...&is_live=true&limit=100")
+cells, cursor = result["data"], result["next_cursor"]
+```
+</CodeGroup>
+
+<Info>
+For async Python, swap `requests` for `httpx` and await the calls. The Cellora API surface does not change.
+</Info>

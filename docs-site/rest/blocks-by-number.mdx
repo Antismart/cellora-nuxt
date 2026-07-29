@@ -1,0 +1,31 @@
+---
+title: "GET /v1/blocks/{number}"
+description: "Fetch a block by decimal height. 400 for non-numeric or negative values, 404 when not yet indexed."
+---
+
+A specific block by its height, given as a decimal integer in the path. Requires authentication.
+
+## Request
+
+```bash
+curl -s \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  $CELLORA_BASE/v1/blocks/1000000 | jq
+```
+
+Pass the decimal number directly — no hex encoding. The response has the same shape as [`GET /v1/blocks/latest`](/rest/blocks-latest).
+
+## Path parameter
+
+<ParamField path="number" type="integer" required>
+  Non-negative decimal block height. Returns `400 bad_request` for non-numeric, negative, or overflowing values (for example `/v1/blocks/abc` or `/v1/blocks/-1`).
+</ParamField>
+
+## Errors
+
+| Status | Code | When |
+| --- | --- | --- |
+| 400 | `bad_request` | Non-numeric, negative, or overflowing path value. |
+| 404 | `not_found` | The block has not been indexed. |
+
+See [Error handling](/errors) for the response envelope.

@@ -1,0 +1,90 @@
+---
+title: "Schema reference"
+description: "The full typed GraphQL schema: Query root, CellsInput, and Block, Cell, Script, ConsumedBy, CellsConnection, Meta, and Stats types."
+---
+
+The full, authoritative GraphQL schema. Field names are camelCase; they map one-to-one onto the snake_case REST fields.
+
+```graphql
+type Query {
+  blocksLatest: Block
+  block(number: Int!): Block
+  cells(input: CellsInput!): CellsConnection!
+  stats: Stats!
+}
+
+input CellsInput {
+  lockHash: String
+  typeHash: String
+  isLive: Boolean
+  limit: Int
+  cursor: String
+  includeData: Boolean
+}
+
+type Block {
+  number: Int!
+  hash: String!
+  parentHash: String!
+  timestampMs: Int!
+  epoch: Int!
+  transactionsCount: Int!
+  proposalsCount: Int!
+  unclesCount: Int!
+  nonce: String!
+  dao: String!
+  indexedAt: String!
+}
+
+type Cell {
+  txHash: String!
+  outputIndex: Int!
+  blockNumber: Int!
+  blockHash: String!
+  capacityShannons: Int!
+  lock: Script!
+  lockHash: String!
+  type: Script
+  typeHash: String
+  data: String
+  isLive: Boolean!
+  consumedBy: ConsumedBy
+}
+
+type Script {
+  codeHash: String!
+  hashType: String!
+  args: String!
+}
+
+type ConsumedBy {
+  txHash: String!
+  inputIndex: Int!
+  blockNumber: Int!
+}
+
+type CellsConnection {
+  data: [Cell!]!
+  nextCursor: String
+  meta: Meta!
+}
+
+type Meta {
+  indexerTip: Int
+  nodeTip: Int
+}
+
+type Stats {
+  indexerTip: Int
+  nodeTip: Int
+  lagBlocks: Int
+  snapshotAgeSeconds: Int!
+  isStale: Boolean!
+}
+```
+
+## Notes
+
+- **`cells` pagination** mirrors REST: `nextCursor` is opaque and `null` on the last page. Pass it back as `CellsInput.cursor`. See [Pagination](/pagination).
+- **`data`** on `Cell` is populated only when `CellsInput.includeData` is `true`.
+- **`Stats` and `Meta`** carry the same tip/lag signals as the REST responses. See [Tip lag and read freshness](/tip-lag-and-freshness).

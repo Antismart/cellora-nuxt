@@ -1,0 +1,79 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "_note": "Mintlify current config format. Older Mintlify projects used mint.json with a different (docs.json-incompatible) shape. If you are on an older CLI, rename this to mint.json and adjust to the legacy schema.",
+  "theme": "mint",
+  "name": "Cellora",
+  "colors": {
+    "primary": "#16A34A",
+    "light": "#4ADE80",
+    "dark": "#15803D"
+  },
+  "description": "Hosted indexer for Nervos CKB. Query blocks, transactions, and cells over REST and GraphQL.",
+  "banner": {
+    "content": "Cellora is in private alpha. Access is invite-based and the API may change.",
+    "dismissible": true
+  },
+  "navigation": {
+    "groups": [
+      {
+        "group": "Getting started",
+        "pages": [
+          "introduction",
+          "quickstart",
+          "authentication"
+        ]
+      },
+      {
+        "group": "Guides",
+        "pages": [
+          "migrating-from-a-local-node",
+          "pagination",
+          "rate-limiting",
+          "errors",
+          "tip-lag-and-freshness",
+          "script-tagging",
+          "inclusion-proofs",
+          "networks"
+        ]
+      },
+      {
+        "group": "REST API reference",
+        "pages": [
+          "rest/overview",
+          "rest/health",
+          "rest/blocks-latest",
+          "rest/blocks-by-number",
+          "rest/cells",
+          "rest/stats",
+          "rest/openapi"
+        ]
+      },
+      {
+        "group": "GraphQL",
+        "pages": [
+          "graphql/overview",
+          "graphql/schema",
+          "graphql/queries"
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Dashboard",
+        "href": "https://cellora-nuxt.vercel.app"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Request access",
+      "href": "https://cellora-nuxt.vercel.app"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com"
+    }
+  }
+}

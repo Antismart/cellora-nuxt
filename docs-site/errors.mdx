@@ -1,0 +1,46 @@
+---
+title: "Error handling"
+description: "The consistent REST error envelope, the full list of error codes, and how GraphQL errors differ."
+---
+
+Every non-2xx REST response uses a single consistent envelope. Parse on `code` for programmatic handling; use `message` for display.
+
+## Error envelope
+
+```json
+{
+  "error": {
+    "code": "bad_request",
+    "message": "'lock_hash' must be 0x-prefixed hex",
+    "details": null
+  }
+}
+```
+
+## Error codes
+
+| `code` | HTTP status | Meaning |
+| --- | --- | --- |
+| `bad_request` | 400 | Invalid parameters. Check `message` for specifics. |
+| `invalid_cursor` | 400 | The cursor value is malformed or tampered. |
+| `unauthorized` | 401 | Missing, invalid, or revoked Bearer token. |
+| `not_found` | 404 | The requested resource does not exist or has not been indexed yet. |
+| `rate_limited` | 429 | Token bucket empty. Respect the `Retry-After` header. |
+| `upstream_unavailable` | 503 | Cellora cannot reach the CKB node. Retry with backoff. |
+| `internal` | 500 | Unexpected server error. Include `x-request-id` when reporting. |
+
+## The x-request-id header
+
+Every response carries an `x-request-id` header (echoed from the client if supplied, otherwise generated server-side). If you hit an unexpected error, include this value in your bug report so the request can be found in server logs.
+
+## GraphQL errors
+
+GraphQL uses the standard GraphQL response shape — a top-level `errors` array on a `200` response — rather than the REST envelope:
+
+```json
+{ "data": null, "errors": [{ "message": "..." }] }
+```
+
+<Warning>
+Clients that wrap both surfaces should branch on the response shape, not the HTTP status. Auth failures and rate-limit refusals still return their HTTP statuses (`401` / `429`) with the REST error envelope, because those checks run before the GraphQL handler. See [GraphQL overview](/graphql/overview).
+</Warning>

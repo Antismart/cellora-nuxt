@@ -1,0 +1,51 @@
+---
+title: "Well-known script tagging"
+description: "Cellora tags recognized lock and type scripts so you can identify secp256k1, anyone-can-pay, sUDT, xUDT, and RGB++ cells without decoding code hashes."
+---
+
+Every CKB cell carries a lock script and, optionally, a type script. Cellora recognizes well-known scripts and tags them, so you can identify what a cell is without maintaining a table of code hashes yourself.
+
+## Recognized scripts
+
+Cellora tags these well-known lock and type scripts:
+
+<CardGroup cols={2}>
+  <Card title="secp256k1" icon="signature">
+    The standard single-signature lock.
+  </Card>
+  <Card title="anyone-can-pay" icon="hand-holding-dollar">
+    The anyone-can-pay lock.
+  </Card>
+  <Card title="sUDT" icon="coins">
+    Simple UDT type script.
+  </Card>
+  <Card title="xUDT" icon="coins">
+    Extensible UDT type script.
+  </Card>
+  <Card title="RGB++" icon="link">
+    RGB++ script.
+  </Card>
+</CardGroup>
+
+## How tags appear
+
+A recognized cell carries a `lock_kind` for its lock script and, where applicable, a `type_kind` for its type script. Unrecognized scripts leave the corresponding kind unset — you still get the full `lock` / `type` script objects (`code_hash`, `hash_type`, `args`) to inspect yourself.
+
+The raw script objects are always present:
+
+```json
+{
+  "lock": {
+    "code_hash": "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9d5cefa...",
+    "hash_type": "type",
+    "args": "0xdeadbeef"
+  },
+  "lock_hash": "0xabc..."
+}
+```
+
+## Why it helps
+
+Instead of decoding code hashes to figure out whether a cell holds an sUDT balance or an anyone-can-pay balance, you can filter and branch on the tagged kind. Specificity like this is CKB-native: you work with what a cell is, not just with an opaque hash.
+
+Cells are returned by [`GET /v1/cells`](/rest/cells) and the [GraphQL `cells` query](/graphql/queries).

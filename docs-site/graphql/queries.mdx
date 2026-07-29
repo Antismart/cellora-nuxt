@@ -1,0 +1,42 @@
+---
+title: "Example queries"
+description: "Worked GraphQL queries: latest block, cells by lock hash with variables and pagination, and indexer stats."
+---
+
+Worked examples against `POST /graphql`. Each sends the Bearer token and a JSON body with a `query` (and, where useful, `variables`).
+
+## Latest block
+
+```bash
+curl -s -X POST $CELLORA_BASE/graphql \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ blocksLatest { number hash transactionsCount } }"}' | jq
+```
+
+## Cells by lock hash with variables
+
+Use variables instead of inline literals to keep queries reusable. `nextCursor` paginates exactly like REST.
+
+```bash
+curl -s -X POST $CELLORA_BASE/graphql \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "query Q($lock: String!) { cells(input: { lockHash: $lock, isLive: true, limit: 20 }) { data { txHash outputIndex blockNumber capacityShannons isLive } nextCursor meta { indexerTip nodeTip } } }",
+    "variables": { "lock": "0x..." }
+  }' | jq
+```
+
+To fetch the next page, pass the returned `nextCursor` back as `cursor` inside `input`.
+
+## Indexer stats
+
+```bash
+curl -s -X POST $CELLORA_BASE/graphql \
+  -H "Authorization: Bearer $CELLORA_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query":"{ stats { indexerTip nodeTip lagBlocks isStale } }"}' | jq
+```
+
+See the [schema reference](/graphql/schema) for every available field.

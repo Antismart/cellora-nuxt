@@ -1,0 +1,48 @@
+---
+title: "Pagination"
+description: "Opaque, reorg-safe cursor pagination. List responses return data, next_cursor, and meta; pass next_cursor back as ?cursor=."
+---
+
+List endpoints return their results in a consistent shape and paginate with opaque cursors that survive chain reorgs.
+
+## Response shape
+
+```json
+{
+  "data": [ /* ... */ ],
+  "next_cursor": "eyJibiI6MTQ4MjM0MDAsInR4IjoiMHhkNGYyOWMzYSIsIm9pIjowfQ",
+  "meta": { "indexer_tip": 14823417, "node_tip": 14823420 }
+}
+```
+
+- **`data`** — the page of results.
+- **`next_cursor`** — pass this back as `?cursor=...` to fetch the next page. A value of `null` means you are on the last page.
+- **`meta`** — indexer and node tip at response time. See [Tip lag and read freshness](/tip-lag-and-freshness).
+
+<Warning>
+Cursors are opaque. Do not parse, construct, or mutate them. A malformed or tampered cursor returns `400 invalid_cursor` (see [Error handling](/errors)).
+</Warning>
+
+## Reorg-safe by design
+
+Opaque cursors encode enough position to keep reads consistent across chain reorgs, rather than relying on a raw offset that silently skips or repeats rows when the chain reorganizes underneath you.
+
+## Walk every page
+
+Follow `next_cursor` until it comes back empty.
+
+```bash
+cursor=""
+while :; do
+  url="$CELLORA_BASE/v1/cells?lock_hash=0x...&limit=100"
+  [ -n "$cursor" ] && url="${url}&cursor=${cursor}"
+
+  resp=$(curl -s -H "Authorization: Bearer $CELLORA_KEY" "$url")
+  echo "$resp" | jq '.data[]'
+
+  cursor=$(echo "$resp" | jq -r '.next_cursor // empty')
+  [ -z "$cursor" ] && break
+done
+```
+
+The `limit` parameter defaults to `50` and is capped at `500`. See [`GET /v1/cells`](/rest/cells) for the full parameter list.

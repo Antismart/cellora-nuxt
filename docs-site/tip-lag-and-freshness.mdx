@@ -1,0 +1,47 @@
+---
+title: "Tip lag and read freshness"
+description: "Reason about indexer_tip vs node_tip and lag_blocks, and read the x-indexer-tip / x-indexer-tip-stale headers to see how fresh your data is."
+---
+
+Cellora indexes the chain continuously, so at any moment the indexer can be a few blocks behind the node's view of the chain tip. Every response tells you how far behind it is, so you never guess at freshness.
+
+## Tip fields
+
+| Field | Meaning |
+| --- | --- |
+| `indexer_tip` | Highest block Cellora has fully indexed. |
+| `node_tip` | Current head of the CKB chain as seen by the node. |
+| `lag_blocks` | `node_tip − indexer_tip`. A lag of 0 to 5 is normal. |
+
+These fields appear in [`GET /v1/stats`](/rest/stats) and in the `meta` object on list responses (as `indexer_tip` / `node_tip`).
+
+## Response headers
+
+Every 2xx response carries tip information in headers, so you can read freshness without a separate stats call:
+
+| Header | Value |
+| --- | --- |
+| `x-indexer-tip` | The tip block number the service observed at response time. |
+| `x-indexer-tip-stale` | Set to `true` when the internal tip snapshot is older than the staleness threshold (default 5 seconds). |
+
+A `true` value on `x-indexer-tip-stale` typically means the background refresh task cannot reach Postgres or the CKB node.
+
+## The is_stale flag
+
+`GET /v1/stats` exposes the same signal as `is_stale`. The stats snapshot is held in memory and refreshed by a background task, so the endpoint is safe to poll without touching the database.
+
+```json
+{
+  "indexer_tip": 14823417,
+  "node_tip": 14823420,
+  "lag_blocks": 3,
+  "snapshot_age_seconds": 1,
+  "is_stale": false
+}
+```
+
+When `is_stale` is `true`, the refresh task has not published a fresh snapshot within the staleness threshold. Check [`/v1/health/ready`](/rest/health) and server logs — either Postgres or the CKB node is unreachable.
+
+## Reorg-safe reads
+
+Reads stay consistent across chain reorgs. Combined with opaque cursor [pagination](/pagination), a reorg does not cause a paging loop to silently skip or repeat rows.

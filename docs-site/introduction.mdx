@@ -1,0 +1,60 @@
+---
+title: "Introduction"
+description: "Cellora is a hosted indexer for Nervos CKB. Query blocks, transactions, and cells over REST and GraphQL instead of running your own indexing stack."
+---
+
+Cellora is a hosted indexer for Nervos CKB. It indexes blocks, transactions, and cells and serves them over REST and GraphQL, so you can query on-chain data without operating your own indexing stack.
+
+Cellora is in **private alpha** on CKB **mainnet and testnet**. Access is invite-based and the API may change.
+
+## What you no longer run
+
+Querying CKB yourself means operating three moving pieces and keeping them in sync. Cellora runs them for you:
+
+<CardGroup cols={3}>
+  <Card title="No ckb-indexer" icon="server">
+    No second binary to run on its own port and keep synced with the node.
+  </Card>
+  <Card title="No Postgres" icon="database">
+    No database to provision, tune, or back up.
+  </Card>
+  <Card title="No snapshot pipeline" icon="camera">
+    No snapshots to build, ship, or babysit.
+  </Card>
+</CardGroup>
+
+## What the API gives you today
+
+- **Reorg-safe reads.** Reads stay consistent across chain reorgs, and opaque cursor pagination survives them instead of silently skipping or repeating rows.
+- **CKB-native cell filtering.** Cells come tagged with well-known lock and type scripts — secp256k1, anyone-can-pay, sUDT, xUDT, and RGB++ — so you can filter by what a cell is, not just by hash.
+- **Freshness you can read off every response.** `x-indexer-tip` and `x-indexer-tip-stale` headers, plus `is_stale` in `/v1/stats`, tell you how far the indexer is from the chain tip.
+- **API-key authentication** with per-key token-bucket rate limits, separate buckets for REST and GraphQL.
+- **Prometheus metrics** and an **OpenAPI 3.1** spec with an embedded Swagger UI.
+- **Transaction inclusion-proof passthrough** for clients that verify against the chain.
+- **A GitHub-OAuth dashboard** to manage your API keys.
+
+## Two interfaces, one dataset
+
+<CardGroup cols={2}>
+  <Card title="REST" icon="code" href="/rest/overview">
+    A `/v1/*` surface with JSON responses and cursor pagination.
+  </Card>
+  <Card title="GraphQL" icon="diagram-project" href="/graphql/overview">
+    A single typed query root at `POST /graphql` exposing the same data.
+  </Card>
+</CardGroup>
+
+## Where to go next
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Create a key and make your first authenticated request in three steps.
+  </Card>
+  <Card title="Migrating from a local node" icon="arrow-right-arrow-left" href="/migrating-from-a-local-node">
+    Swap a CKB node and ckb-indexer for one base URL and an API key.
+  </Card>
+</CardGroup>
+
+---
+
+Cellora is licensed under **FSL-1.1-ALv2**.
