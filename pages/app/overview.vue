@@ -146,8 +146,6 @@ const stats = computed(() => statusData.value || { snapshot_age_seconds: 0 })
 }
 .ov__welcome-bg {
   position: absolute; inset: 0; opacity: 0.5;
-  mask-image: linear-gradient(90deg, transparent 40%, black 100%);
-  -webkit-mask-image: linear-gradient(90deg, transparent 40%, black 100%);
 }
 .ov__welcome-text { position: relative; }
 .ov__hey { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; }

@@ -60,19 +60,9 @@ const tooltipTransform = computed(() => {
 <template>
   <div class="sc" @mouseleave="hover = null" @mousemove="onMove">
     <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" class="sc__svg">
-      <defs>
-        <linearGradient id="sg-rest" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--brand)" stop-opacity="0.5" />
-          <stop offset="100%" stop-color="var(--brand)" stop-opacity="0" />
-        </linearGradient>
-        <linearGradient id="sg-gql" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="oklch(72% 0.13 240)" stop-opacity="0.4" />
-          <stop offset="100%" stop-color="oklch(72% 0.13 240)" stop-opacity="0" />
-        </linearGradient>
-      </defs>
-      <path :d="stackedArea" fill="url(#sg-gql)" />
+      <path :d="stackedArea" fill="oklch(72% 0.13 240)" fill-opacity="0.15" />
       <path :d="stackedLine" stroke="oklch(72% 0.13 240)" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke" />
-      <path :d="restArea" fill="url(#sg-rest)" />
+      <path :d="restArea" fill="var(--brand)" fill-opacity="0.15" />
       <path :d="restLine" stroke="var(--brand)" stroke-width="1.5" fill="none" vector-effect="non-scaling-stroke" />
       <line
         v-if="hover != null"

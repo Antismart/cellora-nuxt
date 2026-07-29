@@ -27,10 +27,9 @@ defineEmits<{ 'update:modelValue': [v: string] }>()
   height: 34px;
   font-size: 13.5px;
   font-family: var(--font-sans);
-  background-image: linear-gradient(45deg, transparent 50%, var(--text-dim) 50%),
-                    linear-gradient(135deg, var(--text-dim) 50%, transparent 50%);
-  background-position: calc(100% - 14px) 14px, calc(100% - 9px) 14px;
-  background-size: 5px 5px, 5px 5px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23888' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-position: calc(100% - 10px) center;
+  background-size: 10px 6px;
   background-repeat: no-repeat;
   cursor: pointer;
 }

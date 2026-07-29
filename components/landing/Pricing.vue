@@ -96,7 +96,7 @@ const tiers: Array<{
 .pr__card--featured {
   background: var(--surface);
   border-color: oklch(40% 0.10 150);
-  box-shadow: 0 0 0 1px var(--brand-tint), var(--shadow-card);
+  box-shadow: var(--shadow-card);
 }
 .pr__featured-badge { position: absolute; top: -10px; left: 24px; }
 .pr__name {

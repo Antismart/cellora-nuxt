@@ -76,16 +76,6 @@ const tooltipTransform = computed(() => {
 <template>
   <div class="uc" @mouseleave="hover = null" @mousemove="onMove">
     <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="none" class="uc__svg">
-      <defs>
-        <linearGradient id="ug-rest" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--brand)" stop-opacity="0.45" />
-          <stop offset="100%" stop-color="var(--brand)" stop-opacity="0" />
-        </linearGradient>
-        <linearGradient id="ug-gql" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="oklch(72% 0.13 240)" stop-opacity="0.4" />
-          <stop offset="100%" stop-color="oklch(72% 0.13 240)" stop-opacity="0" />
-        </linearGradient>
-      </defs>
       <template v-for="(t, i) in yTicks" :key="i">
         <line :x1="padL" :y1="t.y" :x2="W - padR" :y2="t.y" stroke="var(--border-subtle)" :stroke-dasharray="i === 0 ? '' : '2 3'" />
         <text :x="padL - 8" :y="t.y + 3" text-anchor="end" fill="var(--text-dim)" font-family="var(--font-mono)" font-size="10.5">{{ fmtCompact(Math.round(t.v)) }}</text>
@@ -96,11 +86,11 @@ const tooltipTransform = computed(() => {
       </template>
       <g :transform="`translate(${padL},${padT})`">
         <template v-if="showGql">
-          <path :d="stackedAreaPath" fill="url(#ug-gql)" />
+          <path :d="stackedAreaPath" fill="oklch(72% 0.13 240)" fill-opacity="0.14" />
           <path :d="stackedLinePath" stroke="oklch(72% 0.13 240)" stroke-width="1.6" fill="none" vector-effect="non-scaling-stroke" />
         </template>
         <template v-if="showRest">
-          <path :d="restAreaPath" fill="url(#ug-rest)" />
+          <path :d="restAreaPath" fill="var(--brand)" fill-opacity="0.14" />
           <path :d="restLinePath" stroke="var(--brand)" stroke-width="1.6" fill="none" vector-effect="non-scaling-stroke" />
         </template>
         <template v-if="ceiling">

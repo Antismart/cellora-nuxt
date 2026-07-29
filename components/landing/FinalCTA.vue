@@ -33,8 +33,6 @@ defineEmits<{ signIn: [] }>()
 }
 .cta__bg {
   position: absolute; inset: 0; opacity: 0.4;
-  mask-image: radial-gradient(ellipse at center, black, transparent 70%);
-  -webkit-mask-image: radial-gradient(ellipse at center, black, transparent 70%);
 }
 .cta__inner {
   max-width: 720px; margin: 0 auto;

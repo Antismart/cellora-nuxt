@@ -50,7 +50,7 @@ const promptLabel = computed(() => {
 </script>
 
 <template>
-  <section class="hero hero-glow">
+  <section class="hero">
     <div class="lattice lattice-fade hero__lattice" />
     <div class="hero__grid">
       <div>

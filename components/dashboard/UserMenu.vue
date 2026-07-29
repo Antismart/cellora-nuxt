@@ -49,9 +49,10 @@ const initials = (h: string) => h.slice(0, 2).toUpperCase()
 .um__trigger--open { background: var(--surface-2); border-color: var(--border); }
 .um__avatar {
   width: 26px; height: 26px; border-radius: 99px;
-  background: linear-gradient(135deg, oklch(72% 0.16 150), oklch(60% 0.16 220));
+  background: var(--surface-2);
+  border: 1px solid var(--border);
   display: grid; place-items: center;
-  color: oklch(98% 0 0);
+  color: var(--text);
   font-family: var(--font-mono);
   font-size: 11px; font-weight: 600;
 }
