@@ -3,11 +3,15 @@
 // forwards same-origin /admin and /v1 requests there, so app code can use relative URLs.
 const apiBaseUrl = process.env.NUXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8080'
 
+// External documentation site. Docs links across the dashboard open this in a new
+// tab rather than routing to the retired in-app /docs page.
+const docsUrl = process.env.NUXT_PUBLIC_DOCS_URL || 'https://docs.cellora.dev'
+
 export default defineNuxtConfig({
   compatibilityDate: '2025-01-01',
   ssr: true,
   runtimeConfig: {
-    public: { apiBaseUrl },
+    public: { apiBaseUrl, docsUrl },
   },
   nitro: {
     // Proxying is handled by server/routes/{admin,v1,graphql} which use

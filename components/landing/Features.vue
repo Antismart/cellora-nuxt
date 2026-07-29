@@ -1,11 +1,11 @@
 <script setup lang="ts">
 const items = [
-  { iconName: 'layers', title: 'Cursor pagination', detail: 'Stable, ordered cursors that survive reorgs. No offset traps.', hint: '?cursor=eyJibG9ja19udW1iZXIiOjE0ODIzMzI…' },
-  { iconName: 'shield', title: 'Well-known script tagging', detail: 'lock_kind / type_kind on every cell. SECP256K1, anyone-can-pay, sUDT, xUDT, RGB++…', hint: 'lock_kind: "secp256k1_blake160"' },
-  { iconName: 'activity', title: 'Tip-lag stats', detail: 'Every response carries x-indexer-tip and x-indexer-tip-stale headers.', hint: 'x-indexer-tip-stale: false' },
-  { iconName: 'box', title: 'Transaction proofs passthrough', detail: 'Forward CKB MMR-style inclusion proofs without re-implementing the verifier.', hint: 'GET /v1/transactions/{hash}/proof' },
-  { iconName: 'server', title: 'Prometheus metrics', detail: 'p50/p95/p99 by endpoint, key, surface. Drop into your Grafana, alert on lag.', hint: 'cellora_request_duration_seconds_bucket' },
-  { iconName: 'code', title: 'OpenAPI 3.1 spec', detail: 'Codegen clients from the spec; Swagger UI lives in the dashboard.', hint: 'GET /v1/openapi.json' },
+  { iconName: 'layers', title: 'Opaque cursor pagination', detail: 'Cursors survive reorgs, so paging never silently skips or repeats rows. No offset traps.', hint: '?cursor=eyJibG9ja19udW1iZXIiOjE0ODIzMzI…' },
+  { iconName: 'shield', title: 'Well-known script tagging', detail: 'Filter cells by what they are, not just by hash: secp256k1, anyone-can-pay, sUDT, xUDT, RGB++.', hint: 'lock_kind: "secp256k1_blake160"' },
+  { iconName: 'activity', title: 'Tip-lag headers', detail: 'Every response carries x-indexer-tip and x-indexer-tip-stale, so you can see lag from the chain tip.', hint: 'x-indexer-tip-stale: false' },
+  { iconName: 'box', title: 'Inclusion-proof passthrough', detail: 'Forward CKB transaction inclusion proofs for clients that verify against the chain.', hint: 'GET /v1/proofs/{tx_hash}' },
+  { iconName: 'server', title: 'Prometheus metrics', detail: 'Scrape per-endpoint request metrics and alert on indexer lag from your own Grafana.', hint: 'cellora_request_duration_seconds_bucket' },
+  { iconName: 'code', title: 'OpenAPI 3.1 + Swagger UI', detail: 'Generate clients from the spec and explore the API in the embedded Swagger UI.', hint: 'GET /v1/openapi.json' },
 ]
 </script>
 
@@ -14,8 +14,8 @@ const items = [
     <div class="ft__inner">
       <SectionHead
         eyebrow="On every response"
-        title="What the API gives you"
-        subtitle="Cursors, script tags, tip-lag headers, inclusion proofs, and metrics — on the response, not bolted on later."
+        title="What the API gives you today"
+        subtitle="Cursors, script tags, tip-lag headers, inclusion proofs, and metrics — on the response, not bolted on later. Mainnet and testnet."
       />
       <div class="ft__grid">
         <div v-for="it in items" :key="it.title" class="ft__cell">

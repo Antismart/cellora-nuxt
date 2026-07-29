@@ -72,9 +72,9 @@ const responseHtml = computed(() => response.value ? hl.json(JSON.stringify(resp
   <section id="explorer" class="le">
     <div class="le__inner">
       <SectionHead
-        eyebrow="See it work"
-        title="Live against mainnet"
-        subtitle="No signup needed. Hit a real indexer endpoint and inspect the response."
+        eyebrow="Try a query"
+        title="Query mainnet, no key required"
+        subtitle="Send a request to a live indexer endpoint and read the response, headers and all."
       >
         <template #right>
           <div class="mono le__live">

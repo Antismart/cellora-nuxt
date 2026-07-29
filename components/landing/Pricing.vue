@@ -9,24 +9,24 @@ const tiers: Array<{
 }> = [
   {
     key: 'free', name: 'Free', price: '$0', priceSub: 'while in alpha',
-    desc: 'Kick the tires. Build a prototype, run a hackathon.',
+    desc: 'Build a prototype or run a hackathon against a live indexer.',
     rest: '30 / 1 rps', gql: '10 / 0.5 rps',
     cta: 'Sign in with GitHub', ctaVariant: 'outline',
-    features: ['Mainnet + testnet', 'REST + GraphQL', 'Community Discord'],
+    features: ['Mainnet and testnet', 'REST and GraphQL', 'Community Discord'],
   },
   {
     key: 'starter', name: 'Starter', price: 'TBD', priceSub: 'finalises with public beta',
-    desc: 'A small DApp in production, a couple of API keys, modest traffic.',
+    desc: 'A small DApp with a few API keys and steady traffic.',
     rest: '300 / 20 rps', gql: '100 / 10 rps',
     cta: 'Join the waitlist', ctaVariant: 'primary', featured: true,
-    features: ['Up to 5 API keys', 'Per-key rate limits', 'Email support, 1 day'],
+    features: ['Up to 5 API keys', 'Per-key token-bucket limits', 'Email support, 1 day'],
   },
   {
     key: 'pro', name: 'Pro', price: 'TBD', priceSub: 'finalises with public beta',
-    desc: 'Indexer-class throughput. Production explorer, wallet, or backend.',
+    desc: 'Higher rate limits for an explorer, wallet, or backend.',
     rest: '3,000 / 200 rps', gql: '1,000 / 100 rps',
     cta: 'Talk to us', ctaVariant: 'outline',
-    features: ['Unlimited API keys', 'Higher rate limits'],
+    features: ['More API keys per account', 'Higher token-bucket limits'],
   },
 ]
 </script>
@@ -36,8 +36,8 @@ const tiers: Array<{
     <div class="pr__inner">
       <SectionHead
         eyebrow="Pricing"
-        title="Pricing"
-        subtitle="Currently in private alpha. Paid tier prices finalise with public beta; the free tier stays free."
+        title="Rate limits, priced later"
+        subtitle="Private alpha. Paid tier prices finalise with public beta; the free tier stays free. Rate limits are per key, enforced by a token bucket."
       />
       <div class="pr__grid">
         <div

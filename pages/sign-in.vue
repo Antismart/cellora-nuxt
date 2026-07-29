@@ -1,6 +1,7 @@
 <script setup lang="ts">
 const authing = ref(false)
 const { signedIn, ready, refresh, signIn } = useAuth()
+const docsUrl = useRuntimeConfig().public.docsUrl
 
 // If we're already signed in, bounce straight to the dashboard.
 onMounted(async () => {
@@ -37,7 +38,7 @@ useHead({ title: 'Sign in · Cellora' })
             We only read your handle, avatar, and primary email. We never push to your repos.
           </div>
           <div class="hairline signin__foot">
-            New to Cellora? <NuxtLink to="/docs" style="color: var(--brand)">Read the docs</NuxtLink> · <span class="mono">FSL-1.1-ALv2</span>
+            New to Cellora? <a :href="docsUrl" target="_blank" rel="noopener noreferrer" style="color: var(--brand)">Read the docs</a> · <span class="mono">FSL-1.1-ALv2</span>
           </div>
         </div>
       </Card>

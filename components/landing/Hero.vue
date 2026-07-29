@@ -8,6 +8,11 @@ defineEmits<{ signIn: [] }>()
 
 const snippet = ref<'rest' | 'graphql' | 'js'>('rest')
 const tip = useLiveTip()
+const docsUrl = useRuntimeConfig().public.docsUrl
+
+function openDocs() {
+  window.open(docsUrl, '_blank', 'noopener,noreferrer')
+}
 
 const jsCode = `const res = await fetch(
   "https://api.cellora.dev/v1/cells?" + new URLSearchParams({
@@ -55,21 +60,22 @@ const promptLabel = computed(() => {
     <div class="hero__grid">
       <div>
         <div class="micro hero__eyebrow">
-          <Icon name="cell" :size="11" /> Indexer-as-a-Service for Nervos CKB
+          <Icon name="cell" :size="11" /> Private alpha · access is invite-based
         </div>
         <h1 class="hero__title">
-          Indexed CKB data over<br />a hosted HTTP API.
+          Query Nervos CKB data<br />over REST and GraphQL.
         </h1>
         <p class="hero__lede">
-          REST and GraphQL over the same reorg-safe indexer, with API-key auth, per-key
-          rate limits, and Prometheus metrics. So you can stop running your own.
+          A hosted indexer for CKB. Get blocks, transactions, and cells through a
+          clean API instead of running your own ckb-indexer, Postgres, and snapshot
+          pipeline.
         </p>
         <div class="hero__ctas">
           <Button variant="primary" size="lg" @click="$emit('signIn')">
             <template #leftIcon><Icon name="github" :size="15" /></template>
-            Sign in with GitHub
+            Request access
           </Button>
-          <Button variant="outline" size="lg" @click="navigateTo('/docs')">
+          <Button variant="outline" size="lg" @click="openDocs">
             Read the docs
             <template #rightIcon><Icon name="arrowUpRight" :size="14" /></template>
           </Button>

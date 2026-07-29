@@ -3,6 +3,9 @@ import { NETWORKS, type NetworkId } from '~/utils/data'
 
 const props = defineProps<{ pageTitle: string; network: NetworkId }>()
 const net = computed(() => NETWORKS.find((n) => n.id === props.network)!)
+
+const docsUrl = useRuntimeConfig().public.docsUrl
+const openDocs = () => window.open(docsUrl, '_blank', 'noopener')
 </script>
 
 <template>
@@ -18,7 +21,7 @@ const net = computed(() => NETWORKS.find((n) => n.id === props.network)!)
           <span class="mono tb__kbd">⌘K</span>
         </template>
       </Input>
-      <Button variant="default" size="md" @click="navigateTo('/docs')">
+      <Button variant="default" size="md" @click="openDocs">
         <template #leftIcon><Icon name="book" :size="14" /></template>
         Docs
       </Button>

@@ -5,6 +5,8 @@ const route = useRoute()
 const network = useNetwork()
 const { displayUser, signOut: doSignOut } = useAuth()
 
+const docsUrl = useRuntimeConfig().public.docsUrl
+
 const navItems = [
   { id: 'overview', label: 'Overview', iconName: 'home' },
   { id: 'keys',     label: 'API Keys', iconName: 'key' },
@@ -57,9 +59,9 @@ const signOut = async () => {
         </NuxtLink>
         <div class="shell__spacer" />
         <div class="micro shell__nav-section">resources</div>
-        <NuxtLink to="/docs" class="btn-reset shell__navlink">
+        <a :href="docsUrl" target="_blank" rel="noopener noreferrer" class="btn-reset shell__navlink">
           <Icon name="book" :size="15" /> Docs
-        </NuxtLink>
+        </a>
       </nav>
 
       <div class="shell__foot">

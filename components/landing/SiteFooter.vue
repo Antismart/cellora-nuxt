@@ -18,7 +18,7 @@ const groups = [
     <div class="ftr__cols">
       <div>
         <Wordmark />
-        <div class="ftr__tag">Indexer-as-a-Service for Nervos CKB.</div>
+        <div class="ftr__tag">Hosted indexer for Nervos CKB. Query blocks, transactions, and cells over REST and GraphQL. Licensed under FSL-1.1-ALv2.</div>
         <div class="ftr__status">
           <Badge variant="brand" size="sm" dot="pulse">Private alpha</Badge>
         </div>
