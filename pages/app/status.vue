@@ -47,7 +47,6 @@ const getStatus = (id: string) => {
         <div class="st__net-head-left">
           <span class="pulse-dot st__net-dot" :style="{ background: activeNet.accent }" />
           <span class="st__net-name">{{ activeNet.label }}</span>
-          <Badge variant="outline" size="sm" mono>us-east-1</Badge>
         </div>
       </div>
 
@@ -82,14 +81,6 @@ const getStatus = (id: string) => {
             </div>
           </div>
         </div>
-      </div>
-    </Card>
-
-    <Card>
-      <div class="st__foot">
-        <div class="st__foot-title">Need custom SLAs or dedicated nodes?</div>
-        <div class="st__foot-body">Pro and Enterprise users can provision dedicated read-replicas directly via the Cellora API. Replicas are physically isolated from the shared token-bucket limits.</div>
-        <Button variant="outline">Contact sales</Button>
       </div>
     </Card>
   </div>

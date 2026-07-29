@@ -18,7 +18,7 @@ if (import.meta.client) {
     <div class="nav__inner">
       <div class="nav__brand">
         <Wordmark />
-        <Badge variant="brand" size="sm" dot="pulse">Private alpha · Wk 5/7</Badge>
+        <Badge variant="brand" size="sm" dot="pulse">Private alpha</Badge>
       </div>
       <nav class="nav__links">
         <a href="#features">Features</a>

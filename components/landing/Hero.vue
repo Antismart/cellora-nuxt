@@ -74,13 +74,6 @@ const promptLabel = computed(() => {
             <template #rightIcon><Icon name="arrowUpRight" :size="14" /></template>
           </Button>
         </div>
-        <div class="hero__feats">
-          <span><Icon name="check" :size="13" :stroke="2" /> Cursor pagination</span>
-          <span><Icon name="check" :size="13" :stroke="2" /> OpenAPI 3.1</span>
-          <span><Icon name="check" :size="13" :stroke="2" /> Tip-lag headers</span>
-          <span><Icon name="check" :size="13" :stroke="2" /> Mainnet + testnet</span>
-          <span><Icon name="check" :size="13" :stroke="2" /> FSL-1.1-ALv2</span>
-        </div>
       </div>
 
       <div class="hero__terminal-wrap">
@@ -165,13 +158,6 @@ const promptLabel = computed(() => {
   text-wrap: pretty;
 }
 .hero__ctas { margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.hero__feats {
-  margin-top: 36px;
-  display: flex; flex-wrap: wrap; gap: 14px 28px;
-  color: var(--text-dim);
-  font-size: 12.5px;
-}
-.hero__feats span { display: inline-flex; align-items: center; gap: 6px; }
 
 .hero__terminal-wrap { position: relative; }
 .hero__tip-card {

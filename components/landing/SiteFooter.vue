@@ -20,7 +20,7 @@ const groups = [
         <Wordmark />
         <div class="ftr__tag">Indexer-as-a-Service for Nervos CKB.</div>
         <div class="ftr__status">
-          <Badge variant="brand" size="sm" dot="pulse">Private alpha · Wk 5/7</Badge>
+          <Badge variant="brand" size="sm" dot="pulse">Private alpha</Badge>
         </div>
       </div>
       <div v-for="g in groups" :key="g.t">

@@ -26,7 +26,7 @@ const tiers: Array<{
     desc: 'Indexer-class throughput. Production explorer, wallet, or backend.',
     rest: '3,000 / 200 rps', gql: '1,000 / 100 rps',
     cta: 'Talk to us', ctaVariant: 'outline',
-    features: ['Unlimited API keys', '99.9% SLO target', 'Slack + on-call email'],
+    features: ['Unlimited API keys', 'Higher rate limits'],
   },
 ]
 </script>
