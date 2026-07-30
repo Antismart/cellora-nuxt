@@ -27,7 +27,9 @@ These endpoints require no key:
 - `GET /v1/health/ready`
 - `GET /v1/openapi.json`
 - `GET /v1/stats`
-- `GET /metrics`
+
+Prometheus metrics (`/metrics`) are exposed on the backend origin for
+operators, not through the public API base URL.
 
 ## Route hiding
 

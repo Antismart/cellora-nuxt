@@ -17,11 +17,11 @@ These fields appear in [`GET /v1/stats`](/rest/stats) and in the `meta` object o
 
 ## Response headers
 
-Every 2xx response carries tip information in headers, so you can read freshness without a separate stats call:
+Successful responses carry tip information in headers when a snapshot is available, so you can read freshness without a separate stats call:
 
 | Header | Value |
 | --- | --- |
-| `x-indexer-tip` | The tip block number the service observed at response time. |
+| `x-indexer-tip` | The highest block Cellora has indexed, as of the response. Present when a tip snapshot is available. |
 | `x-indexer-tip-stale` | Set to `true` when the internal tip snapshot is older than the staleness threshold (default 5 seconds). |
 
 A `true` value on `x-indexer-tip-stale` typically means the background refresh task cannot reach Postgres or the CKB node.
